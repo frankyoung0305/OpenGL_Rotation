@@ -15,6 +15,10 @@
     
     GLuint vertexBuffer;
     GLuint indexBuffer;
+    
+    GLuint _myTexture;
+    GLuint _texCoordSlot;
+    GLuint _textureUniform;
 
     
     //VAOs are here

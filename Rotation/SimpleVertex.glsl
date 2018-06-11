@@ -14,5 +14,5 @@ void main()
 {
     gl_Position =   projection * modelView * vec4(Position, 1.0);
     DestinationColor = SourceColor;
-    TexCoordOut = TexCoordIn; 
+    TexCoordOut = TexCoordIn;
 }

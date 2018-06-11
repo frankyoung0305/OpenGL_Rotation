@@ -14,43 +14,43 @@
 #define TEX_COORD_MAX   1
 
 /////-square
-// Add texture coordinates to Vertex structure as follows
 typedef struct {
     float Position[3];
     float Color[4];
+    float TexCoord[2]; // New
 } Vertex;
 
 const Vertex Vertices[] = {
     // Front
-    {{1, -1, 1}, {5, 0, 0, 1}},
-    {{1, 1, 1}, {5, 0, 0, 1}},
-    {{-1, 1, 1}, {5, 0, 0, 1}},
-    {{-1, -1, 1}, {5, 0, 0, 1}},
+    {{1, -1, 1}, {5, 0, 0, 1}, {TEX_COORD_MAX, 0}},
+    {{1, 1, 1}, {5, 0, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {5, 0, 0, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {5, 0, 0, 1}, {0, 0}},
     // Back
-    {{1, 1, -1}, {0, 5, 0, 1}},
-    {{-1, -1, -1}, {0, 5, 0, 1}},
-    {{1, -1, -1}, {0, 5, 0, 1}},
-    {{-1, 1, -1}, {0, 5, 0, 1}},
+    {{1, 1, -1}, {0, 5, 0, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 5, 0, 1}, {TEX_COORD_MAX, 0}},
+    {{1, -1, -1}, {0, 5, 0, 1}, {0, 0}},
+    {{-1, 1, -1}, {0, 5, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
     // Left
-    {{-1, -1, 1}, {0, 0, 5, 1}},
-    {{-1, 1, 1}, {0, 0, 5, 1}},
-    {{-1, 1, -1}, {0, 0, 5, 1}},
-    {{-1, -1, -1}, {0, 0, 5, 1}},
+    {{-1, -1, 1}, {0, 0, 5, 1}, {TEX_COORD_MAX, 0}},
+    {{-1, 1, 1}, {0, 0, 5, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {0, 0, 5, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 0, 5, 1}, {0, 0}},
     // Right
-    {{1, -1, -1}, {5, 5, 5, 1}},
-    {{1, 1, -1}, {5, 5, 5, 1}},
-    {{1, 1, 1}, {5, 5, 5, 1}},
-    {{1, -1, 1}, {5, 5, 5, 1}},
+    {{1, -1, -1}, {5, 5, 5, 1}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {5, 5, 5, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, 1}, {5, 5, 5, 1}, {0, TEX_COORD_MAX}},
+    {{1, -1, 1}, {5, 5, 5, 1}, {0, 0}},
     // Top
-    {{1, 1, 1}, {5, 5, 0, 1}},
-    {{1, 1, -1}, {5, 5, 0, 1}},
-    {{-1, 1, -1}, {5, 5, 0, 1}},
-    {{-1, 1, 1}, {5, 5, 0, 1}},
+    {{1, 1, 1}, {5, 5, 0, 1}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {5, 5, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {5, 5, 0, 1}, {0, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {5, 5, 0, 1}, {0, 0}},
     // Bottom
-    {{1, -1, -1}, {0, 1, 1, 1}},
-    {{1, -1, 1}, {0, 255, 2555, 1}},
-    {{-1, -1, 1}, {0, 127, 127, 1}},
-    {{-1, -1, -1}, {0, 63, 63, 1}}
+    {{1, -1, -1}, {0, 1, 1, 1}, {TEX_COORD_MAX, 0}},
+    {{1, -1, 1}, {0, 255, 2555, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {0, 127, 127, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 63, 63, 1}, {0, 0}}
 };
 
 const GLubyte Indices[] = {
@@ -152,6 +152,42 @@ const GLubyte Indices[] = {
     scaleY = 1.0;
     scaleZ = 1.0;
 }
+- (GLuint)setupTexture:(NSString *)fileName {
+    // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
+    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
+    if (!spriteImage) {
+        NSLog(@"Failed to load image %@", fileName);
+        exit(1);
+    }
+    
+    // 2) Create Core Graphics bitmap context. To create a bitmap context, you have to allocate space for it yourself. Here we use some function calls to get the width and height of the image, and then allocate width*height*4 bytes.
+    //    “Why times 4?” you may wonder. When we call the method to draw the image data, it will write one byte each for red, green, blue, and alpha – so 4 bytes in total.
+    //    “Why 1 byte per each?” you may wonder. Well, we tell Core Graphics to do this when we set up the context. The fourth parameter to CGBitmapContextCreate is the bits per component, and we set this to 8 bits (1 byte).
+    size_t width = CGImageGetWidth(spriteImage);
+    size_t height = CGImageGetHeight(spriteImage);
+    
+    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
+    
+    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4,
+                                                       CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
+    
+    // 3) Draw the image into the context. This is also a pretty simiple step – we just tell Core Graphics to draw the image at the specified rectangle. Since we’re done with the context at this point, we can release it.
+    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
+    
+    CGContextRelease(spriteContext);
+    
+    // 4) Send the pixel data to OpenGL. We first need to call glGenTextures to create a texture object and give us its unique ID (called “name”).
+    GLuint texName;
+    glGenTextures(1, &texName);
+    glBindTexture(GL_TEXTURE_2D, texName);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+    
+    free(spriteData);
+    return texName;
+}
 
 - (void)setup {
     [self setupLayer];
@@ -170,6 +206,8 @@ const GLubyte Indices[] = {
 
     [self setupProjection];
     [self setupTransform];
+    
+    _myTexture = [self setupTexture:@"pic.png"];
     
 }
 
@@ -245,7 +283,9 @@ const GLubyte Indices[] = {
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
 
-    
+    //texture
+    _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
+    _textureUniform = glGetUniformLocation(_programHandle, "Texture");
     // Get the uniform model-view matrix slot from program
     //
     _modelViewSlot = glGetUniformLocation(_programHandle, "modelView");
@@ -289,8 +329,14 @@ const GLubyte Indices[] = {
     glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
     
+    glVertexAttribPointer(_texCoordSlot, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 7));
+    
     glEnableVertexAttribArray(_positionSlot);
     glEnableVertexAttribArray(_colorSlot);
+    
+    glEnableVertexAttribArray(_texCoordSlot);
+
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(0);//unbind to exit editing.
@@ -343,6 +389,10 @@ const GLubyte Indices[] = {
     glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
+    //using same texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    glUniform1i(_textureUniform, 0);
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
