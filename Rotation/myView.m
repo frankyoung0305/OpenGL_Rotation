@@ -353,11 +353,13 @@ const GLubyte Indices[] = {
     _rotateX = 1.0;
     _rotateY = 1.0;
     _rotateZ = 1.0;
-    _angle += 2;
+    static GLfloat angleA = 0;
+    angleA += 2;
+    _angle = angleA;
     
-//    scaleX += 0.01;
-//    scaleY += 0.01;
-//    scaleZ += 0.01;
+    scaleX = 2;
+    scaleY = 2;
+    scaleZ = 2;
     
     [self updateProjection];
     [self updateTransform];
@@ -380,8 +382,14 @@ const GLubyte Indices[] = {
     _rotateX = 1.0;
     _rotateY = -1.0;
     _rotateZ = 1.0;
-    _angle += 1.5;
     
+    scaleX = 1;
+    scaleY = 1;
+    scaleZ = 2;
+    
+    static GLfloat angleB = 0;
+    angleB += 0.3;
+    _angle = angleB;
     [self updateProjection];
     [self updateTransform];
     
@@ -397,8 +405,14 @@ const GLubyte Indices[] = {
     _rotateX = -1.0;
     _rotateY = 1.0;
     _rotateZ = 1.0;
-    _angle += 1;
     
+    scaleX = 1;
+    scaleY = 1;
+    scaleZ = 1;
+
+    static GLfloat angleC = 0;
+    angleC += 2;
+    _angle = angleC;
     [self updateProjection];
     [self updateTransform];
     
