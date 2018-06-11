@@ -30,12 +30,14 @@
     
     // uniform to set for every render action/object
     GLint _modelViewSlot;
+    GLint _lookViewSlot;
     GLint _projectionSlot;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
     ksMatrix4 _modelViewMatrix;
     ksMatrix4 _projectionMatrix;
+    ksMatrix4 _lookViewMatrix;
     
     // vals for projection
     float _aspect;
@@ -57,6 +59,14 @@
     float scaleY;
     float scaleZ;
     
+    float eyeX;
+    float eyeY;
+    float eyeZ;
+    
+    float tgtX;
+    float tgtY;
+    float tgtZ;
+    
 }
 
 + (Class)layerClass; //overwrite func layerClass
@@ -69,8 +79,10 @@
 - (void)setupDepthBuffer;
 - (void)setupFrameBuffer;
 - (void)destoryRenderAndFrameBuffer;
+
 - (void)setupProjection;
 - (void)setupTransform;//encapsule to func 'setup'
+- (void)setupLookView;
 
 
 - (void)setup;
@@ -90,7 +102,8 @@
 
 // set uniform for every render action(varies every time GPU renders)
 - (void)updateTransform;
-
+- (void)updateView;
+- (void)updateProjection;
 
 - (void)render;
 

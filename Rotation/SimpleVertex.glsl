@@ -9,10 +9,11 @@ out vec4 DestinationColor;
 
 uniform mat4 projection;
 uniform mat4 modelView;
+uniform mat4 lookView;
 
 void main()
 {
-    gl_Position =   projection * modelView * vec4(Position, 1.0);
+    gl_Position =   projection * lookView * modelView * vec4(Position, 1.0);
     DestinationColor = SourceColor;
     TexCoordOut = TexCoordIn;
 }

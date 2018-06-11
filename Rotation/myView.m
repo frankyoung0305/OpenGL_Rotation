@@ -152,6 +152,15 @@ const GLubyte Indices[] = {
     scaleY = 1.0;
     scaleZ = 1.0;
 }
+- (void)setupLookView{
+    eyeX = 0;
+    eyeY = 0;
+    eyeZ = 0;
+    
+    tgtX = 0;
+    tgtY = 0;
+    tgtZ = -1;
+}
 - (GLuint)setupTexture:(NSString *)fileName {
     // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
     CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
@@ -206,6 +215,7 @@ const GLubyte Indices[] = {
 
     [self setupProjection];
     [self setupTransform];
+    [self setupLookView];
     
     _myTexture = [self setupTexture:@"pic.png"];
     
@@ -293,6 +303,8 @@ const GLubyte Indices[] = {
     // Get the uniform projection matrix slot from program
     //
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
+    
+    _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
 
 }
 
@@ -352,6 +364,8 @@ const GLubyte Indices[] = {
     
     //视角，长宽比，近平面距离，远平面距离
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
+//    ksOrtho(&_projectionMatrix, 1000, 1000, 1000, 1000, 0, 1000);
+
     
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
@@ -377,6 +391,27 @@ const GLubyte Indices[] = {
     // Load the model-view matrix(传送数据)
     glUniformMatrix4fv(_modelViewSlot, 1, GL_FALSE, (GLfloat*)&_modelViewMatrix.m[0][0]);
 }
+- (void)updateView{
+    // Generate a view matrix
+    //
+    ksMatrixLoadIdentity(&_lookViewMatrix);
+    ksVec3 eye;
+    eye.x = eyeX;
+    eye.y = eyeY;
+    eye.z = eyeZ;
+    ksVec3 target;
+    target.x = tgtX;
+    target.y = tgtY;
+    target.z = tgtZ;
+    ksVec3 up;
+    up.x = 0;
+    up.y = -1;
+    up.z = 0;
+    //视角，长宽比，近平面距离，远平面距离
+    ksLookAt(&_lookViewMatrix, &eye, &target, &up);
+    // Load projection matrix(传送数据)
+    glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+}
 
 //- (void)render {  //绘制
 //    glClearColor(0, 255, 0, 1);  //R,G,B,alpha
@@ -393,6 +428,14 @@ const GLubyte Indices[] = {
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, _myTexture);
     glUniform1i(_textureUniform, 0);
+    
+    eyeX = 0;
+    eyeY = 0;
+    eyeZ = 0;
+    
+    tgtX = 0;
+    tgtY = 0;
+    tgtZ = -1;
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -413,6 +456,7 @@ const GLubyte Indices[] = {
     
     [self updateProjection];
     [self updateTransform];
+    [self updateView];
     
 
 //    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
@@ -442,6 +486,7 @@ const GLubyte Indices[] = {
     _angle = angleB;
     [self updateProjection];
     [self updateTransform];
+    [self updateView];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
@@ -465,6 +510,7 @@ const GLubyte Indices[] = {
     _angle = angleC;
     [self updateProjection];
     [self updateTransform];
+    [self updateView];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
