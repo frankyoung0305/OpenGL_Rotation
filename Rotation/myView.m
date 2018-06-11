@@ -244,8 +244,7 @@ const GLubyte Indices[] = {
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
-    glEnableVertexAttribArray(_positionSlot);
-    glEnableVertexAttribArray(_colorSlot);
+
     
     // Get the uniform model-view matrix slot from program
     //
@@ -282,12 +281,16 @@ const GLubyte Indices[] = {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     
     
-    //使用glVertexAttribPointer来向顶点着色器的两个输入变量写入正确的值
+
+    //使用glVertexAttribPointer来向顶点着色器的两个输入变量定位缓存的入口
     //参数：1将要设置的属性名，2每个顶点有几个值（维度），3数据类型，4数据是否标准化，5步长(下个属性数据组出现的位置)，6偏移量（距离缓冲起始位置）
     glVertexAttribPointer(_positionSlot, 3, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), 0);
     glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
+    
+    glEnableVertexAttribArray(_positionSlot);
+    glEnableVertexAttribArray(_colorSlot);
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(0);//unbind to exit editing.
@@ -343,9 +346,9 @@ const GLubyte Indices[] = {
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
-    _posX = 0.0;
+    _posX = 5.0;
     _posY = 0.0;
-    _posZ = -10.0;
+    _posZ = -30.0;
     
     _rotateX = 1.0;
     _rotateY = 1.0;
@@ -359,12 +362,6 @@ const GLubyte Indices[] = {
     [self updateProjection];
     [self updateTransform];
     
-    
-//
-//
-//
-//    //使用glVertexAttribPointer来向顶点着色器的两个输入变量写入正确的值
-//    //参数：1将要设置的属性名，2每个顶点有几个值（维度），3数据类型，4数据是否标准化，5步长(下个属性数据组出现的位置)，6偏移量（距离缓冲起始位置）
 
 //    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);// bind objA
@@ -375,6 +372,42 @@ const GLubyte Indices[] = {
                    GL_UNSIGNED_BYTE, 0);
     
     glBindVertexArray(0);//unbind
+    //cube 2
+    _posX = -5.0;
+    _posY = 0.0;
+    _posZ = -30.0;
+    
+    _rotateX = 1.0;
+    _rotateY = -1.0;
+    _rotateZ = 1.0;
+    _angle += 1.5;
+    
+    [self updateProjection];
+    [self updateTransform];
+    
+    glBindVertexArray(_objectA);// bind objA
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+                   GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);//unbind
+    
+    _posX = 0.0;
+    _posY = 0.0;
+    _posZ = -20.0;
+    
+    _rotateX = -1.0;
+    _rotateY = 1.0;
+    _rotateZ = 1.0;
+    _angle += 1;
+    
+    [self updateProjection];
+    [self updateTransform];
+    
+    glBindVertexArray(_objectA);// bind objA
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+                   GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);//unbind
+    
+    
     
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
     static UInt64 lasttime;
