@@ -27,17 +27,23 @@
     // every object could use these slots
     GLuint _positionSlot;
     GLuint _colorSlot;
+    GLuint _normalSlot;
     
     // uniform to set for every render action/object
     GLint _modelViewSlot;
     GLint _lookViewSlot;
     GLint _projectionSlot;
+    GLint _normalModelSlot;
+    GLint _lightDirectionSlot;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
     ksMatrix4 _modelViewMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
+    ksMatrix4 _normalModelMatrix;
+    ksVec3 _lightDirection;
+
     
     // vals for projection
     float _aspect;
@@ -104,6 +110,7 @@
 - (void)updateTransform;
 - (void)updateView;
 - (void)updateProjection;
+- (void)updateLight;
 
 - (void)render;
 

@@ -17,40 +17,41 @@
 typedef struct {
     float Position[3];
     float Color[4];
+    float Normal[3]; //法线
     float TexCoord[2]; // New
 } Vertex;
 
 const Vertex Vertices[] = {
     // Front
-    {{1, -1, 1}, {5, 0, 0, 1}, {TEX_COORD_MAX, 0}},
-    {{1, 1, 1}, {5, 0, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, 1}, {5, 0, 0, 1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, 1}, {5, 0, 0, 1}, {0, 0}},
+    {{1, -1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, 0}},
+    {{1, 1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {0, 0}},
     // Back
-    {{1, 1, -1}, {0, 5, 0, 1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 5, 0, 1}, {TEX_COORD_MAX, 0}},
-    {{1, -1, -1}, {0, 5, 0, 1}, {0, 0}},
-    {{-1, 1, -1}, {0, 5, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, 0}},
+    {{1, -1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {0, 0}},
+    {{-1, 1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
     // Left
-    {{-1, -1, 1}, {0, 0, 5, 1}, {TEX_COORD_MAX, 0}},
-    {{-1, 1, 1}, {0, 0, 5, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, -1}, {0, 0, 5, 1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 0, 5, 1}, {0, 0}},
+    {{-1, -1, 1}, {0, 0, 5, 1}, {-1, 0, 0}, {TEX_COORD_MAX, 0}},
+    {{-1, 1, 1}, {0, 0, 5, 1}, {-1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {0, 0, 5, 1}, {-1, 0, 0}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 0, 5, 1}, {-1, 0, 0}, {0, 0}},
     // Right
-    {{1, -1, -1}, {5, 5, 5, 1}, {TEX_COORD_MAX, 0}},
-    {{1, 1, -1}, {5, 5, 5, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{1, 1, 1}, {5, 5, 5, 1}, {0, TEX_COORD_MAX}},
-    {{1, -1, 1}, {5, 5, 5, 1}, {0, 0}},
+    {{1, -1, -1}, {5, 5, 5, 1}, {1, 0, 0}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {5, 5, 5, 1}, {1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, 1}, {5, 5, 5, 1}, {1, 0, 0}, {0, TEX_COORD_MAX}},
+    {{1, -1, 1}, {5, 5, 5, 1}, {1, 0, 0}, {0, 0}},
     // Top
-    {{1, 1, 1}, {5, 5, 0, 1}, {TEX_COORD_MAX, 0}},
-    {{1, 1, -1}, {5, 5, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, -1}, {5, 5, 0, 1}, {0, TEX_COORD_MAX}},
-    {{-1, 1, 1}, {5, 5, 0, 1}, {0, 0}},
+    {{1, 1, 1}, {5, 5, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {5, 5, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {5, 5, 0, 1}, {0, 1, 0}, {0, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {5, 5, 0, 1}, {0, 1, 0}, {0, 0}},
     // Bottom
-    {{1, -1, -1}, {0, 1, 1, 1}, {TEX_COORD_MAX, 0}},
-    {{1, -1, 1}, {0, 255, 2555, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, -1, 1}, {0, 127, 127, 1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 63, 63, 1}, {0, 0}}
+    {{1, -1, -1}, {0, 1, 1, 1}, {0, -1, 0}, {TEX_COORD_MAX, 0}},
+    {{1, -1, 1}, {0, 255, 2555, 1}, {0, -1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {0, 127, 127, 1}, {0, -1, 0}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 63, 63, 1}, {0, -1, 0}, {0, 0}}
 };
 
 const GLubyte Indices[] = {
@@ -296,6 +297,8 @@ const GLubyte Indices[] = {
     //texture
     _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
+    
+    _normalSlot = glGetUniformLocation(_programHandle, "normal");
     // Get the uniform model-view matrix slot from program
     //
     _modelViewSlot = glGetUniformLocation(_programHandle, "modelView");
@@ -305,6 +308,9 @@ const GLubyte Indices[] = {
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
     
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
+    
+    _normalModelSlot = glGetUniformLocation(_programHandle, "normalModel");
+    _lightDirectionSlot = glGetUniformLocation(_programHandle, "lightDirection");
 
 }
 
@@ -342,12 +348,16 @@ const GLubyte Indices[] = {
                           sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
     
     glVertexAttribPointer(_texCoordSlot, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 7));
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
+    
+    glVertexAttribPointer(_normalSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(sizeof(float)*7));
+    
     
     glEnableVertexAttribArray(_positionSlot);
     glEnableVertexAttribArray(_colorSlot);
     
     glEnableVertexAttribArray(_texCoordSlot);
+    glEnableVertexAttribArray(_normalSlot);
 
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
@@ -364,8 +374,6 @@ const GLubyte Indices[] = {
     
     //视角，长宽比，近平面距离，远平面距离
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
-//    ksOrtho(&_projectionMatrix, 1000, 1000, 1000, 1000, 0, 1000);
-
     
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
@@ -388,6 +396,12 @@ const GLubyte Indices[] = {
     
     ksMatrixScale(&_modelViewMatrix, scaleX, scaleY, scaleZ);
     
+    //法线变换矩阵（逆转置）
+    ksMatrixLoadIdentity(&_normalModelMatrix);
+    ksMatrixInvert(&_normalModelMatrix, &_normalModelMatrix);
+    ksMatrixTranspose(&_normalModelMatrix, &_normalModelMatrix);
+    
+    glUniformMatrix4fv(_normalModelSlot, 1, GL_FALSE, (GLfloat*)&_normalModelMatrix.m[0][0]);
     // Load the model-view matrix(传送数据)
     glUniformMatrix4fv(_modelViewSlot, 1, GL_FALSE, (GLfloat*)&_modelViewMatrix.m[0][0]);
 }
@@ -405,12 +419,18 @@ const GLubyte Indices[] = {
     target.z = tgtZ;
     ksVec3 up;
     up.x = 0;
-    up.y = -1;
+    up.y = 1;
     up.z = 0;
     //视角，长宽比，近平面距离，远平面距离
     ksLookAt(&_lookViewMatrix, &eye, &target, &up);
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+}
+
+- (void) updateLight{
+    _lightDirection.x = 0;
+    _lightDirection.y = -1;
+    _lightDirection.z = 0;
 }
 
 //- (void)render {  //绘制
@@ -429,13 +449,16 @@ const GLubyte Indices[] = {
     glBindTexture(GL_TEXTURE_2D, _myTexture);
     glUniform1i(_textureUniform, 0);
     
-    eyeX = 0;
+    static float viewRotateAngle = 0;
+    float viewRotateRad = 30;
+    eyeX = viewRotateRad*cosf(viewRotateAngle)+5;
     eyeY = 0;
-    eyeZ = 0;
-    
-    tgtX = 0;
+    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
+    viewRotateAngle += 0.01;
+    //look at targets
+    tgtX = 5;
     tgtY = 0;
-    tgtZ = -1;
+    tgtZ = -30;
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -457,6 +480,7 @@ const GLubyte Indices[] = {
     [self updateProjection];
     [self updateTransform];
     [self updateView];
+    [self updateLight];
     
 
 //    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
@@ -487,6 +511,7 @@ const GLubyte Indices[] = {
     [self updateProjection];
     [self updateTransform];
     [self updateView];
+    [self updateLight];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
@@ -511,6 +536,7 @@ const GLubyte Indices[] = {
     [self updateProjection];
     [self updateTransform];
     [self updateView];
+    [self updateLight];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
