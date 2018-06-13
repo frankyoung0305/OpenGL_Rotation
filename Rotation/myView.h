@@ -33,8 +33,10 @@
     GLint _modelViewSlot;
     GLint _lookViewSlot;
     GLint _projectionSlot;
-    GLint _normalModelSlot;
-    GLint _lightDirectionSlot;
+    
+    //light
+    GLint _lightPosSlot;
+    GLint _eyePosSlot;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
@@ -42,7 +44,7 @@
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
     ksMatrix4 _normalModelMatrix;
-    ksVec3 _lightDirection;
+    ksVec3 _lightPos;
 
     
     // vals for projection

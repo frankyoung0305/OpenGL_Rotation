@@ -23,35 +23,35 @@ typedef struct {
 
 const Vertex Vertices[] = {
     // Front
-    {{1, -1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, 0}},
-    {{1, 1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, 1}, {5, 0, 0, 1}, {0, 0, 1}, {0, 0}},
+    {{1, -1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, 0}},
+    {{1, 1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {0, 0}},
     // Back
-    {{1, 1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, 0}},
-    {{1, -1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {0, 0}},
-    {{-1, 1, -1}, {0, 5, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, 0}},
+    {{1, -1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, 0}},
+    {{-1, 1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
     // Left
-    {{-1, -1, 1}, {0, 0, 5, 1}, {-1, 0, 0}, {TEX_COORD_MAX, 0}},
-    {{-1, 1, 1}, {0, 0, 5, 1}, {-1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, -1}, {0, 0, 5, 1}, {-1, 0, 0}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 0, 5, 1}, {-1, 0, 0}, {0, 0}},
+    {{-1, -1, 1}, {0, 0, 1, 1}, {-1, 0, 0}, {TEX_COORD_MAX, 0}},
+    {{-1, 1, 1}, {0, 0, 1, 1}, {-1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {0, 0, 1, 1}, {-1, 0, 0}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 0, 1, 1}, {-1, 0, 0}, {0, 0}},
     // Right
-    {{1, -1, -1}, {5, 5, 5, 1}, {1, 0, 0}, {TEX_COORD_MAX, 0}},
-    {{1, 1, -1}, {5, 5, 5, 1}, {1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{1, 1, 1}, {5, 5, 5, 1}, {1, 0, 0}, {0, TEX_COORD_MAX}},
-    {{1, -1, 1}, {5, 5, 5, 1}, {1, 0, 0}, {0, 0}},
+    {{1, -1, -1}, {1, 1, 1, 1}, {1, 0, 0}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {1, 1, 1, 1}, {1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, 1}, {1, 1, 1, 1}, {1, 0, 0}, {0, TEX_COORD_MAX}},
+    {{1, -1, 1}, {1, 1, 1, 1}, {1, 0, 0}, {0, 0}},
     // Top
-    {{1, 1, 1}, {5, 5, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, 0}},
-    {{1, 1, -1}, {5, 5, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, 1, -1}, {5, 5, 0, 1}, {0, 1, 0}, {0, TEX_COORD_MAX}},
-    {{-1, 1, 1}, {5, 5, 0, 1}, {0, 1, 0}, {0, 0}},
+    {{1, 1, 1}, {1, 1, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, 0}},
+    {{1, 1, -1}, {1, 1, 0, 1}, {0, 1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, 1, -1}, {1, 1, 0, 1}, {0, 1, 0}, {0, TEX_COORD_MAX}},
+    {{-1, 1, 1}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
     // Bottom
     {{1, -1, -1}, {0, 1, 1, 1}, {0, -1, 0}, {TEX_COORD_MAX, 0}},
-    {{1, -1, 1}, {0, 255, 2555, 1}, {0, -1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
-    {{-1, -1, 1}, {0, 127, 127, 1}, {0, -1, 0}, {0, TEX_COORD_MAX}},
-    {{-1, -1, -1}, {0, 63, 63, 1}, {0, -1, 0}, {0, 0}}
+    {{1, -1, 1}, {0, 1, 1, 1}, {0, -1, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{-1, -1, 1}, {0, 1, 1, 1}, {0, -1, 0}, {0, TEX_COORD_MAX}},
+    {{-1, -1, -1}, {0, 1, 1, 1}, {0, -1, 0}, {0, 0}}
 };
 
 const GLubyte Indices[] = {
@@ -162,6 +162,11 @@ const GLubyte Indices[] = {
     tgtY = 0;
     tgtZ = -1;
 }
+- (void)setupLight{
+    _lightPos.x = 100;
+    _lightPos.y = 100;
+    _lightPos.z = 100;
+}
 - (GLuint)setupTexture:(NSString *)fileName {
     // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
     CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
@@ -217,6 +222,7 @@ const GLubyte Indices[] = {
     [self setupProjection];
     [self setupTransform];
     [self setupLookView];
+    [self setupLight];
     
     _myTexture = [self setupTexture:@"pic.png"];
     
@@ -293,24 +299,22 @@ const GLubyte Indices[] = {
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
+    _normalSlot = glGetAttribLocation(_programHandle, "normal");
 
     //texture
     _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
     
-    _normalSlot = glGetUniformLocation(_programHandle, "normal");
     // Get the uniform model-view matrix slot from program
-    //
     _modelViewSlot = glGetUniformLocation(_programHandle, "modelView");
-    
     // Get the uniform projection matrix slot from program
-    //
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
-    
+    // Get the uniform view matrix slot from program
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
     
-    _normalModelSlot = glGetUniformLocation(_programHandle, "normalModel");
-    _lightDirectionSlot = glGetUniformLocation(_programHandle, "lightDirection");
+    _lightPosSlot = glGetUniformLocation(_programHandle, "lightPos");
+    _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
+    
 
 }
 
@@ -346,10 +350,8 @@ const GLubyte Indices[] = {
                           sizeof(Vertex), 0);
     glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
-    
     glVertexAttribPointer(_texCoordSlot, 2, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
-    
     glVertexAttribPointer(_normalSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(sizeof(float)*7));
     
     
@@ -396,12 +398,6 @@ const GLubyte Indices[] = {
     
     ksMatrixScale(&_modelViewMatrix, scaleX, scaleY, scaleZ);
     
-    //法线变换矩阵（逆转置）
-    ksMatrixLoadIdentity(&_normalModelMatrix);
-    ksMatrixInvert(&_normalModelMatrix, &_normalModelMatrix);
-    ksMatrixTranspose(&_normalModelMatrix, &_normalModelMatrix);
-    
-    glUniformMatrix4fv(_normalModelSlot, 1, GL_FALSE, (GLfloat*)&_normalModelMatrix.m[0][0]);
     // Load the model-view matrix(传送数据)
     glUniformMatrix4fv(_modelViewSlot, 1, GL_FALSE, (GLfloat*)&_modelViewMatrix.m[0][0]);
 }
@@ -425,12 +421,12 @@ const GLubyte Indices[] = {
     ksLookAt(&_lookViewMatrix, &eye, &target, &up);
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+    //load eye position uniform
+    glUniform3f(_eyePosSlot, eyeX, eyeY, eyeZ);
 }
 
 - (void) updateLight{
-    _lightDirection.x = 0;
-    _lightDirection.y = -1;
-    _lightDirection.z = 0;
+    glUniform3f(_lightPosSlot, _lightPos.x, _lightPos.y, _lightPos.y);
 }
 
 //- (void)render {  //绘制
@@ -441,7 +437,7 @@ const GLubyte Indices[] = {
 //}
 
 - (void)render {  //render func for shader
-    glClearColor(0, 104.0/255.0, 55.0/255.0, 1.0);
+    glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     //using same texture
@@ -452,13 +448,20 @@ const GLubyte Indices[] = {
     static float viewRotateAngle = 0;
     float viewRotateRad = 30;
     eyeX = viewRotateRad*cosf(viewRotateAngle)+5;
-    eyeY = 0;
+    eyeY = 30;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
     viewRotateAngle += 0.01;
     //look at targets
     tgtX = 5;
     tgtY = 0;
     tgtZ = -30;
+    
+    //rotate light
+    static float lightRotAngle = 0;
+    float lightRotRad = 30;
+    _lightPos.x = lightRotRad * cosf(lightRotAngle);
+    _lightPos.y = 30;
+    _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
