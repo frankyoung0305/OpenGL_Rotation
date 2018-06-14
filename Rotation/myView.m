@@ -12,6 +12,8 @@
 #import "myView.h"
 
 #define TEX_COORD_MAX   1
+#define GRD_TEX_COORD_MAX   10
+
 
 /////-square
 typedef struct {
@@ -54,6 +56,14 @@ const Vertex Vertices[] = {
     {{-1, -1, -1}, {0, 1, 1, 1}, {0, -1, 0}, {0, 0}}
 };
 
+const Vertex groundVert[] = {
+    {{1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, 0}},
+    {{1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, GRD_TEX_COORD_MAX}},
+    {{-1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRD_TEX_COORD_MAX}},
+    {{-1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
+    
+};
+
 const GLubyte Indices[] = {
     // Front
     0, 1, 2,
@@ -73,6 +83,10 @@ const GLubyte Indices[] = {
     // Bottom
     20, 21, 22,
     22, 23, 20
+};
+const GLubyte groundIndices[] = {
+    0, 1, 2,
+    2, 3, 0,
 };
 
 @implementation GLView : UIView
@@ -168,39 +182,40 @@ const GLubyte Indices[] = {
     _lightPos.z = 100;
 }
 - (GLuint)setupTexture:(NSString *)fileName {
-    // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
+    // 1) Get Core Graphics image reference.
     CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
     if (!spriteImage) {
         NSLog(@"Failed to load image %@", fileName);
         exit(1);
     }
-    
-    // 2) Create Core Graphics bitmap context. To create a bitmap context, you have to allocate space for it yourself. Here we use some function calls to get the width and height of the image, and then allocate width*height*4 bytes.
-    //    “Why times 4?” you may wonder. When we call the method to draw the image data, it will write one byte each for red, green, blue, and alpha – so 4 bytes in total.
-    //    “Why 1 byte per each?” you may wonder. Well, we tell Core Graphics to do this when we set up the context. The fourth parameter to CGBitmapContextCreate is the bits per component, and we set this to 8 bits (1 byte).
+    // 2) Create Core Graphics bitmap context. 自行分配空间。获取宽高，分配w*h*4字节的空间。（*4: r,g,b,alpha一共四个字节）
     size_t width = CGImageGetWidth(spriteImage);
     size_t height = CGImageGetHeight(spriteImage);
     
     GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
     
-    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4,
-                                                       CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
+    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
     
-    // 3) Draw the image into the context. This is also a pretty simiple step – we just tell Core Graphics to draw the image at the specified rectangle. Since we’re done with the context at this point, we can release it.
+    // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
     CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
-    
     CGContextRelease(spriteContext);
     
-    // 4) Send the pixel data to OpenGL. We first need to call glGenTextures to create a texture object and give us its unique ID (called “name”).
+    // 4) Send the pixel data to OpenGL. gen并bind textureObj。
     GLuint texName;
     glGenTextures(1, &texName);
     glBindTexture(GL_TEXTURE_2D, texName);
     
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
     
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+    glGenerateMipmap(GL_TEXTURE_2D);
     
     free(spriteData);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
     return texName;
 }
 
@@ -224,7 +239,9 @@ const GLubyte Indices[] = {
     [self setupLookView];
     [self setupLight];
     
-    _myTexture = [self setupTexture:@"pic.png"];
+    _myTexture = [self setupTexture:@"metal.png"];
+    _groundTexture = [self setupTexture:@"ground.png"];
+    _woodTexture = [self setupTexture:@"wood.png"];
     
 }
 
@@ -331,6 +348,14 @@ const GLubyte Indices[] = {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
     
+    glGenBuffers(1, &groundVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(groundVert), groundVert, GL_STATIC_DRAW);
+    
+    glGenBuffers(1, &groundIndexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundIndices), groundIndices, GL_STATIC_DRAW);
+    
 }
 //setup a VAO
 - (void)setupVAO{
@@ -342,8 +367,6 @@ const GLubyte Indices[] = {
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     
-    
-
     //使用glVertexAttribPointer来向顶点着色器的两个输入变量定位缓存的入口
     //参数：1将要设置的属性名，2每个顶点有几个值（维度），3数据类型，4数据是否标准化，5步长(下个属性数据组出现的位置)，6偏移量（距离缓冲起始位置）
     glVertexAttribPointer(_positionSlot, 3, GL_FLOAT, GL_FALSE,
@@ -364,6 +387,28 @@ const GLubyte Indices[] = {
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(0);//unbind to exit editing.
+    
+    //ground
+    glGenVertexArrays(1, &_groundObj);
+    glBindVertexArray(_groundObj);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer);
+    
+    glVertexAttribPointer(_positionSlot, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), 0);
+    glVertexAttribPointer(_colorSlot, 4, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
+    glVertexAttribPointer(_texCoordSlot, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
+    glVertexAttribPointer(_normalSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(sizeof(float)*7));
+    
+    glEnableVertexAttribArray(_positionSlot);
+    glEnableVertexAttribArray(_colorSlot);
+    glEnableVertexAttribArray(_texCoordSlot);
+    glEnableVertexAttribArray(_normalSlot);
+    
+    glBindVertexArray(0);
     
 }
 
@@ -440,79 +485,102 @@ const GLubyte Indices[] = {
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
-    //using same texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    glUniform1i(_textureUniform, 0);
-    
+    //set view parameters
     static float viewRotateAngle = 0;
-    float viewRotateRad = 30;
-    eyeX = viewRotateRad*cosf(viewRotateAngle)+5;
-    eyeY = 0;
+    float viewRotateRad = 15;
+    eyeX = viewRotateRad*cosf(viewRotateAngle);
+    eyeY = 15;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
     viewRotateAngle += 0.01;
     //look at targets
-    tgtX = 5;
+    tgtX = 0;
     tgtY = 0;
     tgtZ = -30;
     
+    //set light paras
     //rotate light
     static float lightRotAngle = 0;
     float lightRotRad = 30;
     _lightPos.x = lightRotRad * cosf(lightRotAngle);
-    _lightPos.y = 0;
+    _lightPos.y = 100;
     _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
-    lightRotAngle += 0.001;
+    lightRotAngle += 0.1;
     
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
-    _posX = 5.0;
-    _posY = 0.0;
+    
+    //ground
+    //using  texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _groundTexture);
+    glUniform1i(_textureUniform, 0);
+    _posX = 0;
+    _posY = 0;
+    _posZ = -30;
+    scaleX = 100;
+    scaleZ = 100;
+    _angle = 0;
+    [self updateProjection];
+    [self updateTransform];
+    [self updateView];
+    [self updateLight];
+    glBindVertexArray(_groundObj);
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+                   GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);//unbind
+    //cube A
+    //using  texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    glUniform1i(_textureUniform, 0);
+    _posX = 0.0;
+    _posY = 2.0;
     _posZ = -30.0;
     
-    _rotateX = 1.0;
-    _rotateY = 1.0;
-    _rotateZ = 1.0;
-    static GLfloat angleA = 0;
-    angleA += 2;
-    _angle = angleA;
+//    _rotateX = 1.0;
+//    _rotateY = 1.0;
+//    _rotateZ = 1.0;
+//    static GLfloat angleA = 0;
+//    angleA += 2;
+//    _angle = angleA;
     
     scaleX = 2;
-    scaleY = 2;
+    scaleY = _posY;
     scaleZ = 2;
     
     [self updateProjection];
     [self updateTransform];
     [self updateView];
     [self updateLight];
-    
 
-//    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+// 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);// bind objA
-
 //    //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
 //    //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
+    
     //cube 2
+    //using  texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+    glUniform1i(_textureUniform, 0);
     _posX = -5.0;
-    _posY = 0.0;
+    _posY = 1.5;
     _posZ = -30.0;
     
-    _rotateX = 1.0;
-    _rotateY = -1.0;
-    _rotateZ = 1.0;
+//    _rotateX = 1.0;
+//    _rotateY = -1.0;
+//    _rotateZ = 1.0;
+//
+    scaleX = 1.5;
+    scaleY = _posY;
+    scaleZ = 1.5;
     
-    scaleX = 1;
-    scaleY = 1;
-    scaleZ = 2;
-    
-    static GLfloat angleB = 0;
-    angleB += 0.3;
-    _angle = angleB;
+//    static GLfloat angleB = 0;
+//    angleB += 0.3;
+//    _angle = angleB;
     [self updateProjection];
     [self updateTransform];
     [self updateView];
@@ -523,9 +591,15 @@ const GLubyte Indices[] = {
                    GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
     
-    _posX = 0.0;
-    _posY = 0.0;
-    _posZ = -20.0;
+    //cube C
+    //using  texture
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+    glUniform1i(_textureUniform, 0);
+    
+    _posX = 5.0;
+    _posY = 2.0;
+    _posZ = -30.0;
     
     _rotateX = -1.0;
     _rotateY = 1.0;
@@ -548,8 +622,7 @@ const GLubyte Indices[] = {
                    GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
     
-    
-    
+    //count fps
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
     static UInt64 lasttime;
     UInt64 timval = recordTime - lasttime;

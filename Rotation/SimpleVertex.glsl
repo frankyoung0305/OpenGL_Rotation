@@ -35,7 +35,7 @@ void main()
     vec3 diffuse = diff * lightColor;
     
     
-    float specularStrength = 0.5;
+    float specularStrength = 0.8;
     float shininess = 256.0;
     vec3 viewDir = normalize(eyePos - worldPos);
     vec3 reflectDir = reflect(-lightDir, norm);
@@ -43,9 +43,9 @@ void main()
     vec3 specular = specularStrength * spec * lightColor;
     
     
-    vec3 result = (ambient + diffuse + specular) * SourceColor.rgb;
+    vec3 result = (ambient + diffuse + specular) ;
     
     
-    DestinationColor = vec4(result, 1.0) * SourceColor;
+    DestinationColor = vec4(result, 1.0) ;
     TexCoordOut = TexCoordIn;
 }

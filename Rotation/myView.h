@@ -15,14 +15,19 @@
     
     GLuint vertexBuffer;
     GLuint indexBuffer;
+    GLuint groundVertexBuffer;
+    GLuint groundIndexBuffer;
     
     GLuint _myTexture;
+    GLuint _groundTexture;
+    GLuint _woodTexture;
+    
     GLuint _texCoordSlot;
     GLuint _textureUniform;
 
-    
     //VAOs are here
     GLuint _objectA;
+    GLuint _groundObj;
     
     // every object could use these slots
     GLuint _positionSlot;

@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3C308B2620D21946007E65DF /* metal.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2520D21945007E65DF /* metal.png */; };
+		3C308B2820D24C60007E65DF /* ground.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2720D24C5F007E65DF /* ground.png */; };
+		3C308B2A20D24E7E007E65DF /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2920D24E7D007E65DF /* wood.png */; };
 		3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */; };
 		3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */; };
 		3C9373FC20C41E3D00A48C10 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C9373FB20C41E3D00A48C10 /* AppDelegate.m */; };
@@ -41,6 +44,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		3C308B2520D21945007E65DF /* metal.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = metal.png; sourceTree = "<group>"; };
+		3C308B2720D24C5F007E65DF /* ground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ground.png; sourceTree = "<group>"; };
+		3C308B2920D24E7D007E65DF /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wood.png; sourceTree = "<group>"; };
 		3C5FBEBC20C54767002CB0B7 /* myView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = myView.h; sourceTree = "<group>"; };
 		3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
 		3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
@@ -116,6 +122,9 @@
 		3C9373F920C41E3D00A48C10 /* Rotation */ = {
 			isa = PBXGroup;
 			children = (
+				3C308B2920D24E7D007E65DF /* wood.png */,
+				3C308B2720D24C5F007E65DF /* ground.png */,
+				3C308B2520D21945007E65DF /* metal.png */,
 				3C93743A20C5082A00A48C10 /* myView.m */,
 				3C5FBEBC20C54767002CB0B7 /* myView.h */,
 				3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */,
@@ -259,9 +268,12 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3C308B2620D21946007E65DF /* metal.png in Resources */,
 				3CA65F7320C92C1D00B58A6A /* pic.png in Resources */,
+				3C308B2A20D24E7E007E65DF /* wood.png in Resources */,
 				3C93740720C41E3E00A48C10 /* LaunchScreen.storyboard in Resources */,
 				3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */,
+				3C308B2820D24C60007E65DF /* ground.png in Resources */,
 				3C93740420C41E3E00A48C10 /* Assets.xcassets in Resources */,
 				3C93740220C41E3D00A48C10 /* Main.storyboard in Resources */,
 				3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */,
