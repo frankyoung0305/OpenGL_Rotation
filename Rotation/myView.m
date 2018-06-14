@@ -448,7 +448,7 @@ const GLubyte Indices[] = {
     static float viewRotateAngle = 0;
     float viewRotateRad = 30;
     eyeX = viewRotateRad*cosf(viewRotateAngle)+5;
-    eyeY = 30;
+    eyeY = 0;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
     viewRotateAngle += 0.01;
     //look at targets
@@ -460,7 +460,7 @@ const GLubyte Indices[] = {
     static float lightRotAngle = 0;
     float lightRotRad = 30;
     _lightPos.x = lightRotRad * cosf(lightRotAngle);
-    _lightPos.y = 30;
+    _lightPos.y = 0;
     _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
     lightRotAngle += 0.001;
     
