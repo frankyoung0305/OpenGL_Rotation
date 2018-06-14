@@ -14,6 +14,9 @@
 #define TEX_COORD_MAX   1
 #define GRD_TEX_COORD_MAX   5
 
+#define E_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
+
+
 
 /////-square
 
@@ -92,7 +95,7 @@ const GLubyte groundIndices[] = {
 //} Material;
 const Material metalMaterial = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 256.0};
 const Material groundMaterial = {{1.0, 1.0, 1.0},{1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 0};
-const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, 32};
+const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.0}, 16};
 
 @implementation GLView : UIView
 + (Class)layerClass {
@@ -526,12 +529,12 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     //set view parameters
-    static float viewRotateAngle = 0;
-    float viewRotateRad = 15;
+    static float viewRotateAngle = 3.0/2.0*E_PI;
+    float viewRotateRad = 30;
     eyeX = viewRotateRad*cosf(viewRotateAngle);
     eyeY = 15;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
-    viewRotateAngle += 0.01;
+//    viewRotateAngle += 0.01;
     //look at targets
     tgtX = 0;
     tgtY = 0;
@@ -540,9 +543,9 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0
     //set light paras
     //rotate light
     static float lightRotAngle = 0;
-    float lightRotRad = 30;
+    float lightRotRad = 10;
     _lightPos.x = lightRotRad * cosf(lightRotAngle);
-    _lightPos.y = 100;
+    _lightPos.y = 10;
     _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
     lightRotAngle += 0.1;
     
@@ -552,9 +555,13 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0
     ksVec3 abntIndex = {0.5, 0.5, 0.5};
     ksVec3 difsIndex = {0.2, 0.2, 0.2};
     
-    lightColor.x = sinf(colorAngle * 2.0);
-    lightColor.y = sinf(colorAngle * 0.7);
-    lightColor.z = sinf(colorAngle * 1.3);
+//    lightColor.x = sinf(colorAngle * 2.0);
+//    lightColor.y = sinf(colorAngle * 0.7);
+//    lightColor.z = sinf(colorAngle * 1.3);
+    
+    lightColor.x = 1.0;
+    lightColor.y = 1.0;
+    lightColor.z = 1.0;
     fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
     colorAngle += 0.01;
@@ -563,6 +570,29 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+    
+    //draw the light source
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    glUniform1i(_textureUniform, 0);
+    _posX = _lightPos.x;
+    _posY = _lightPos.y;
+    _posZ = _lightPos.z;
+    scaleX = 0.2;
+    scaleY = 0.2;
+    scaleZ = 0.2;
+    _angle = 0;
+    material = metalMaterial;
+    
+    [self updateProjection];
+    [self updateTransform];
+    [self updateView];
+    [self updateLight];
+    glBindVertexArray(_objectA);
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+                   GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);//unbind
+    
     
     //ground
     //using  texture

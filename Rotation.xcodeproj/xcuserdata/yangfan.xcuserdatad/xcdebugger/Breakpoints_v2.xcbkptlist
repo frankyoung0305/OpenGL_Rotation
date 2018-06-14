@@ -10,11 +10,11 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Rotation/myView.m"
-            timestampString = "550665084.326599"
+            timestampString = "550672313.439703"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "647"
-            endingLineNumber = "647"
+            startingLineNumber = "677"
+            endingLineNumber = "677"
             landmarkName = "-render"
             landmarkType = "7">
          </BreakpointContent>
