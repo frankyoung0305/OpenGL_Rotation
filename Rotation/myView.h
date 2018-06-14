@@ -3,6 +3,25 @@
 #import <OpenGLES/ES3/gl.h>  //glXXX etc.
 
 #include "ksMatrix.h"
+typedef struct {
+    float Position[3];
+    float Color[4];
+    float Normal[3]; //法线
+    float TexCoord[2]; // New
+} Vertex;
+
+typedef struct {  //光照材质
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+    float shininess;
+} Material;
+
+typedef struct {    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+} Light;
 
 @interface GLView : UIView
 {
@@ -42,13 +61,19 @@
     //light
     GLint _lightPosSlot;
     GLint _eyePosSlot;
+    GLint _ambientSlot;  //material
+    GLint _diffuseSlot;
+    GLint _specularSlot;
+    GLint _shininessSlot;
+    GLint _lightAmbientSlot;  //light
+    GLint _lightDiffuseSlot;
+    GLint _lightSpecularSlot;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
     ksMatrix4 _modelViewMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
-    ksMatrix4 _normalModelMatrix;
     ksVec3 _lightPos;
 
     
@@ -80,6 +105,8 @@
     float tgtY;
     float tgtZ;
     
+    Material material;
+    Light light;
 }
 
 + (Class)layerClass; //overwrite func layerClass

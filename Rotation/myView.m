@@ -16,12 +16,7 @@
 
 
 /////-square
-typedef struct {
-    float Position[3];
-    float Color[4];
-    float Normal[3]; //法线
-    float TexCoord[2]; // New
-} Vertex;
+
 
 const Vertex Vertices[] = {
     // Front
@@ -89,6 +84,16 @@ const GLubyte groundIndices[] = {
     2, 3, 0,
 };
 
+//typedef struct {  //光照材质
+    //ksVec3 ambient;
+    //ksVec3 diffuse;
+    //ksVec3 specular;
+    //float shininess;
+//} Material;
+const Material metalMaterial = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 256.0};
+const Material groundMaterial = {{1.0, 1.0, 1.0},{1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 0};
+const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, 32};
+
 @implementation GLView : UIView
 + (Class)layerClass {
     return [CAEAGLLayer class];
@@ -142,107 +147,6 @@ const GLubyte groundIndices[] = {
     _framebuffer = 0;
     glDeleteRenderbuffers(1, &_colorrenderbuffer);
     _colorrenderbuffer = 0;
-}
-
-- (void)setupProjection{
-
-    _aspect = self.frame.size.width / self.frame.size.height;
-    _sightAngleY = 60; //view y angle in degrees
-    _nearZ = 1.0f;
-    _farZ = 1000.0f;
-}
-
-//init transform matrix
-- (void)setupTransform{
-    _posX = 0.0;
-    _posY = 0.0;
-    _posZ = 0.0;
-    
-    _rotateX = 0.0;
-    _rotateY = 0.0;
-    _rotateZ = 0.0;
-    _angle = 0.0;
-    
-    scaleX = 1.0;
-    scaleY = 1.0;
-    scaleZ = 1.0;
-}
-- (void)setupLookView{
-    eyeX = 0;
-    eyeY = 0;
-    eyeZ = 0;
-    
-    tgtX = 0;
-    tgtY = 0;
-    tgtZ = -1;
-}
-- (void)setupLight{
-    _lightPos.x = 100;
-    _lightPos.y = 100;
-    _lightPos.z = 100;
-}
-- (GLuint)setupTexture:(NSString *)fileName {
-    // 1) Get Core Graphics image reference.
-    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
-    if (!spriteImage) {
-        NSLog(@"Failed to load image %@", fileName);
-        exit(1);
-    }
-    // 2) Create Core Graphics bitmap context. 自行分配空间。获取宽高，分配w*h*4字节的空间。（*4: r,g,b,alpha一共四个字节）
-    size_t width = CGImageGetWidth(spriteImage);
-    size_t height = CGImageGetHeight(spriteImage);
-    
-    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
-    
-    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
-    
-    // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
-    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
-    CGContextRelease(spriteContext);
-    
-    // 4) Send the pixel data to OpenGL. gen并bind textureObj。
-    GLuint texName;
-    glGenTextures(1, &texName);
-    glBindTexture(GL_TEXTURE_2D, texName);
-    
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-    
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
-    glGenerateMipmap(GL_TEXTURE_2D);
-    
-    free(spriteData);
-    glBindTexture(GL_TEXTURE_2D, 0);
-
-    return texName;
-}
-
-- (void)setup {
-    [self setupLayer];
-    [self setupContext];
-    
-    [self destoryRenderAndFrameBuffer];
-    
-    [self setupDepthBuffer];
-    [self setupRenderBuffer];
-    [self setupFrameBuffer];
-    
-    [self compileShaders];
-    
-    [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
-    [self setupVAO];
-
-    [self setupProjection];
-    [self setupTransform];
-    [self setupLookView];
-    [self setupLight];
-    
-    _myTexture = [self setupTexture:@"metal.png"];
-    _groundTexture = [self setupTexture:@"ground.png"];
-    _woodTexture = [self setupTexture:@"wood.png"];
-    
 }
 
 /////////----shader
@@ -317,7 +221,7 @@ const GLubyte groundIndices[] = {
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
     _normalSlot = glGetAttribLocation(_programHandle, "normal");
-
+    
     //texture
     _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
@@ -332,10 +236,114 @@ const GLubyte groundIndices[] = {
     _lightPosSlot = glGetUniformLocation(_programHandle, "lightPos");
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
-
+    _ambientSlot = glGetUniformLocation(_programHandle, "material.ambient");
+    _diffuseSlot = glGetUniformLocation(_programHandle, "material.diffuse");
+    _specularSlot = glGetUniformLocation(_programHandle, "material.specular");
+    _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
+    
+    _lightAmbientSlot = glGetUniformLocation(_programHandle, "light.ambient");
+    _lightDiffuseSlot = glGetUniformLocation(_programHandle, "light.diffuse");
+    _lightSpecularSlot = glGetUniformLocation(_programHandle, "light.specular");
+    
 }
 
 //////-shader
+
+- (void)setupProjection{
+
+    _aspect = self.frame.size.width / self.frame.size.height;
+    _sightAngleY = 60; //view y angle in degrees
+    _nearZ = 1.0f;
+    _farZ = 1000.0f;
+}
+
+//init transform matrix
+- (void)setupTransform{
+    _posX = 0.0;
+    _posY = 0.0;
+    _posZ = 0.0;
+    
+    _rotateX = 0.0;
+    _rotateY = 0.0;
+    _rotateZ = 0.0;
+    _angle = 0.0;
+    
+    scaleX = 1.0;
+    scaleY = 1.0;
+    scaleZ = 1.0;
+}
+- (void)setupLookView{
+    eyeX = 0;
+    eyeY = 0;
+    eyeZ = 0;
+    
+    tgtX = 0;
+    tgtY = 0;
+    tgtZ = -1;
+}
+- (void)setupLight{
+    _lightPos.x = 100;
+    _lightPos.y = 100;
+    _lightPos.z = 100;
+    
+    material.ambient.x = 1.0;
+    material.ambient.y = 0.5;
+    material.ambient.z = 0.31;
+    material.diffuse.x = 1.0;
+    material.diffuse.y = 0.5;
+    material.diffuse.z = 0.31;
+    material.specular.x = 0.5;
+    material.specular.y = 0.5;
+    material.specular.z = 0.5;
+    material.shininess = 32.0; //init material
+    
+    light.ambient.x = 0.2;
+    light.ambient.y = 0.2;
+    light.ambient.z = 0.2;
+    light.diffuse.x = 0.5;
+    light.diffuse.y = 0.5;
+    light.diffuse.z = 0.5;
+    light.specular.x = 1.0;
+    light.specular.y = 1.0;
+    light.specular.z = 1.0;
+}
+- (GLuint)setupTexture:(NSString *)fileName {
+    // 1) Get Core Graphics image reference.
+    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
+    if (!spriteImage) {
+        NSLog(@"Failed to load image %@", fileName);
+        exit(1);
+    }
+    // 2) Create Core Graphics bitmap context. 自行分配空间。获取宽高，分配w*h*4字节的空间。（*4: r,g,b,alpha一共四个字节）
+    size_t width = CGImageGetWidth(spriteImage);
+    size_t height = CGImageGetHeight(spriteImage);
+    
+    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
+    
+    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
+    
+    // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
+    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
+    CGContextRelease(spriteContext);
+    
+    // 4) Send the pixel data to OpenGL. gen并bind textureObj。
+    GLuint texName;
+    glGenTextures(1, &texName);
+    glBindTexture(GL_TEXTURE_2D, texName);
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+    glGenerateMipmap(GL_TEXTURE_2D);
+    
+    free(spriteData);
+    glBindTexture(GL_TEXTURE_2D, 0);
+
+    return texName;
+}
 
 
 - (void)setupVBOs {
@@ -412,6 +420,34 @@ const GLubyte groundIndices[] = {
     
 }
 
+- (void)setup {
+    [self setupLayer];
+    [self setupContext];
+    
+    [self destoryRenderAndFrameBuffer];
+    
+    [self setupDepthBuffer];
+    [self setupRenderBuffer];
+    [self setupFrameBuffer];
+    
+    [self compileShaders];
+    
+    [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
+    [self setupVAO];
+    
+    [self setupProjection];
+    [self setupTransform];
+    [self setupLookView];
+    [self setupLight];
+    
+    _myTexture = [self setupTexture:@"metal.png"];
+    _groundTexture = [self setupTexture:@"ground.png"];
+    _woodTexture = [self setupTexture:@"wood.png"];
+    
+}
+
+///////////////////////////////////////////
+
 
 -(void)updateProjection
 {
@@ -472,14 +508,18 @@ const GLubyte groundIndices[] = {
 
 - (void) updateLight{
     glUniform3f(_lightPosSlot, _lightPos.x, _lightPos.y, _lightPos.y);
+    
+    glUniform3f(_ambientSlot, material.ambient.x, material.ambient.y, material.ambient.z);
+    glUniform3f(_diffuseSlot, material.diffuse.x, material.diffuse.y, material.diffuse.z);
+    glUniform3f(_specularSlot, material.specular.x, material.specular.y, material.specular.z);
+    glUniform1f(_shininessSlot, material.shininess);
+    
+    glUniform3f(_lightAmbientSlot, light.ambient.x, light.ambient.y, light.ambient.z);
+    glUniform3f(_lightDiffuseSlot, light.diffuse.x, light.diffuse.y, light.diffuse.z);
+    glUniform3f(_lightSpecularSlot, light.specular.x, light.specular.y, light.specular.z);
 }
 
-//- (void)render {  //绘制
-//    glClearColor(0, 255, 0, 1);  //R,G,B,alpha
-//    glClear(GL_COLOR_BUFFER_BIT);
-//
-//    [_context presentRenderbuffer:GL_RENDERBUFFER];
-//}
+//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
     glClearColor(0.1, 0.1, 0.1, 1.0);
@@ -506,6 +546,20 @@ const GLubyte groundIndices[] = {
     _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
     lightRotAngle += 0.1;
     
+    //change light color
+    ksVec3 lightColor = {1.0, 1.0, 1.0};
+    static float colorAngle = 0;
+    ksVec3 abntIndex = {0.5, 0.5, 0.5};
+    ksVec3 difsIndex = {0.2, 0.2, 0.2};
+    
+    lightColor.x = sinf(colorAngle * 2.0);
+    lightColor.y = sinf(colorAngle * 0.7);
+    lightColor.z = sinf(colorAngle * 1.3);
+    fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
+    fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
+    colorAngle += 0.01;
+    
+    
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -521,6 +575,8 @@ const GLubyte groundIndices[] = {
     scaleX = 10;
     scaleZ = 10;
     _angle = 0;
+    material = groundMaterial;
+    
     [self updateProjection];
     [self updateTransform];
     [self updateView];
@@ -548,6 +604,7 @@ const GLubyte groundIndices[] = {
     scaleX = 2;
     scaleY = _posY;
     scaleZ = 2;
+    material = metalMaterial;
     
     [self updateProjection];
     [self updateTransform];
@@ -581,6 +638,7 @@ const GLubyte groundIndices[] = {
 //    static GLfloat angleB = 0;
 //    angleB += 0.3;
 //    _angle = angleB;
+    material = woodMaterial;
     [self updateProjection];
     [self updateTransform];
     [self updateView];
@@ -612,6 +670,7 @@ const GLubyte groundIndices[] = {
     static GLfloat angleC = 0;
     angleC += 2;
     _angle = angleC;
+    material = woodMaterial;
     [self updateProjection];
     [self updateTransform];
     [self updateView];

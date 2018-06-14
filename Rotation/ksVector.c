@@ -41,6 +41,13 @@ float ksDotProduct(const ksVec3 * a, const ksVec3 * b)
 	return (a->x * b->x + a->y * b->y + a->z * b->z);
 }
 
+void fyVectorGLSLProduct(ksVec3 * out, const ksVec3 * a, const ksVec3 * b) {
+    out->x = a->x * b->x;
+    out->y = a->x * b->y;
+    out->z = a->z * b->z;
+}
+
+
 void ksVectorLerp(ksVec3 * out, const ksVec3 * a, const ksVec3 * b, float t)
 {
 	out->x = (a->x * (1 - t) + b->x * t);
