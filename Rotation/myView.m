@@ -12,7 +12,7 @@
 #import "myView.h"
 
 #define TEX_COORD_MAX   1
-#define GRD_TEX_COORD_MAX   10
+#define GRD_TEX_COORD_MAX   5
 
 
 /////-square
@@ -518,8 +518,8 @@ const GLubyte groundIndices[] = {
     _posX = 0;
     _posY = 0;
     _posZ = -30;
-    scaleX = 100;
-    scaleZ = 100;
+    scaleX = 10;
+    scaleZ = 10;
     _angle = 0;
     [self updateProjection];
     [self updateTransform];
