@@ -462,6 +462,8 @@ const GLubyte Indices[] = {
     _lightPos.x = lightRotRad * cosf(lightRotAngle);
     _lightPos.y = 30;
     _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
+    lightRotAngle += 0.001;
+    
     
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);

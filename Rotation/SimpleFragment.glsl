@@ -28,7 +28,7 @@ void main(void) {
     
     
     float specularStrength = 0.5;
-    float shininess = 32.0;
+    float shininess = 256.0;
     vec3 viewDir = normalize(eyePos - worldPos);
     vec3 reflectDir = reflect(-lightDir, norm);
     float spec = pow(max(dot(viewDir, reflectDir), 0.0), shininess);
