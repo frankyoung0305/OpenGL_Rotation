@@ -11,9 +11,8 @@ typedef struct {
 } Vertex;
 
 typedef struct {  //光照材质
-    ksVec3 ambient;
-    ksVec3 diffuse;
-    ksVec3 specular;
+    GLuint _difsLightingMap;  //漫反射光照贴图纹理入口
+    GLuint _spclLightingMap;  //镜面反射光照贴图纹理入口
     float shininess;
 } Material;
 
@@ -40,6 +39,7 @@ typedef struct {
     GLuint _myTexture;
     GLuint _groundTexture;
     GLuint _woodTexture;
+    GLuint _frameTexture;
     
     GLuint _texCoordSlot;
     GLuint _textureUniform;
@@ -61,9 +61,9 @@ typedef struct {
     //light
     GLint _lightPosSlot;
     GLint _eyePosSlot;
-    GLint _ambientSlot;  //material
-    GLint _diffuseSlot;
-    GLint _specularSlot;
+//    GLint _ambientSlot;  //material
+    GLint _diffuseMapSlot;  //lighting map
+    GLint _specularMapSlot;
     GLint _shininessSlot;
     GLint _lightAmbientSlot;  //light
     GLint _lightDiffuseSlot;
@@ -106,6 +106,10 @@ typedef struct {
     float tgtZ;
     
     Material material;
+    Material metal;
+    Material wood;
+    Material ground;
+    
     Light light;
 }
 

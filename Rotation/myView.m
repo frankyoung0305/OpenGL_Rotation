@@ -93,11 +93,13 @@ const GLubyte groundIndices[] = {
     //ksVec3 specular;
     //float shininess;
 //} Material;
-const Material metalMaterial = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 256.0};
-const Material groundMaterial = {{1.0, 1.0, 1.0},{1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 0};
-const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.0}, 16};
+//const Material metalMaterial = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 256.0};
+//const Material groundMaterial = {{1.0, 1.0, 1.0},{1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 0};
+//const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.0}, 16};
+
 
 @implementation GLView : UIView
+
 + (Class)layerClass {
     return [CAEAGLLayer class];
 } //overwrite func layerClass
@@ -239,9 +241,8 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     _lightPosSlot = glGetUniformLocation(_programHandle, "lightPos");
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
-    _ambientSlot = glGetUniformLocation(_programHandle, "material.ambient");
-    _diffuseSlot = glGetUniformLocation(_programHandle, "material.diffuse");
-    _specularSlot = glGetUniformLocation(_programHandle, "material.specular");
+    _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
+    _specularMapSlot = glGetUniformLocation(_programHandle, "material.specular");
     _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
     
     _lightAmbientSlot = glGetUniformLocation(_programHandle, "light.ambient");
@@ -289,15 +290,9 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     _lightPos.y = 100;
     _lightPos.z = 100;
     
-    material.ambient.x = 1.0;
-    material.ambient.y = 0.5;
-    material.ambient.z = 0.31;
-    material.diffuse.x = 1.0;
-    material.diffuse.y = 0.5;
-    material.diffuse.z = 0.31;
-    material.specular.x = 0.5;
-    material.specular.y = 0.5;
-    material.specular.z = 0.5;
+
+    material._difsLightingMap = _myTexture;
+    material._spclLightingMap = _myTexture;
     material.shininess = 32.0; //init material
     
     light.ambient.x = 0.2;
@@ -346,6 +341,11 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return texName;
+}
+- (void) setupMaterial: (Material*) material withDfsTexture: (GLuint) texture1 spcTexture: (GLuint) texture2 Shininess: (float) shininess{
+    material->_difsLightingMap = texture1;
+    material->_spclLightingMap = texture2;
+    material->shininess = shininess;
 }
 
 
@@ -446,7 +446,27 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     _myTexture = [self setupTexture:@"metal.png"];
     _groundTexture = [self setupTexture:@"ground.png"];
     _woodTexture = [self setupTexture:@"wood.png"];
+    _frameTexture = [self setupTexture:@"frame.png"];
     
+    glActiveTexture(GL_TEXTURE1); //激活纹理单元
+    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    glActiveTexture(GL_TEXTURE2);
+    glBindTexture(GL_TEXTURE_2D, _groundTexture);
+    glActiveTexture(GL_TEXTURE3);
+    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+    glActiveTexture(GL_TEXTURE4);
+    glBindTexture(GL_TEXTURE_2D, _frameTexture);
+
+    
+    [self setupMaterial:&metal withDfsTexture:1 spcTexture:4 Shininess:256.0];
+    [self setupMaterial:&ground withDfsTexture:2 spcTexture:4 Shininess:8.0];
+    [self setupMaterial:&wood withDfsTexture:3 spcTexture:4 Shininess:256.0];
+//
+//    NSLog(@"metal.dif = %u, _metaltex = %u", metal._difsLightingMap, _myTexture);
+//    NSLog(@"grd.dif = %u, _grdtex = %u", ground._difsLightingMap, _groundTexture);
+//    NSLog(@"wood.dif = %u, _woodtex = %u", wood._difsLightingMap, _woodTexture);
+
+
 }
 
 ///////////////////////////////////////////
@@ -512,9 +532,9 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
 - (void) updateLight{
     glUniform3f(_lightPosSlot, _lightPos.x, _lightPos.y, _lightPos.y);
     
-    glUniform3f(_ambientSlot, material.ambient.x, material.ambient.y, material.ambient.z);
-    glUniform3f(_diffuseSlot, material.diffuse.x, material.diffuse.y, material.diffuse.z);
-    glUniform3f(_specularSlot, material.specular.x, material.specular.y, material.specular.z);
+    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
+//    glUniform3f(_specularSlot, material.specular.x, material.specular.y, material.specular.z);
+    glUniform1i(_specularMapSlot, material._spclLightingMap);
     glUniform1f(_shininessSlot, material.shininess);
     
     glUniform3f(_lightAmbientSlot, light.ambient.x, light.ambient.y, light.ambient.z);
@@ -530,30 +550,30 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     glEnable(GL_DEPTH_TEST);
     //set view parameters
     static float viewRotateAngle = 3.0/2.0*E_PI;
-    float viewRotateRad = 30;
+    float viewRotateRad = 15;
     eyeX = viewRotateRad*cosf(viewRotateAngle);
-    eyeY = 15;
+    eyeY = 10;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
-//    viewRotateAngle += 0.01;
+    viewRotateAngle += 0.01;
     //look at targets
     tgtX = 0;
-    tgtY = 0;
+    tgtY = 2;
     tgtZ = -30;
     
     //set light paras
     //rotate light
     static float lightRotAngle = 0;
-    float lightRotRad = 10;
+    float lightRotRad = 100;
     _lightPos.x = lightRotRad * cosf(lightRotAngle);
-    _lightPos.y = 10;
-    _lightPos.z = lightRotRad * sinf(lightRotAngle) - 30;
-    lightRotAngle += 0.1;
+    _lightPos.y = lightRotRad * sinf(lightRotAngle);
+    _lightPos.z = -30;
+    lightRotAngle += 0.01;
     
     //change light color
     ksVec3 lightColor = {1.0, 1.0, 1.0};
-    static float colorAngle = 0;
-    ksVec3 abntIndex = {0.5, 0.5, 0.5};
-    ksVec3 difsIndex = {0.2, 0.2, 0.2};
+//    static float colorAngle = 0;
+    ksVec3 abntIndex = {0.1, 0.1, 0.1};
+    ksVec3 difsIndex = {0.9, 0.9, 0.9};
     
 //    lightColor.x = sinf(colorAngle * 2.0);
 //    lightColor.y = sinf(colorAngle * 0.7);
@@ -564,7 +584,7 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     lightColor.z = 1.0;
     fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
-    colorAngle += 0.01;
+//    colorAngle += 0.01;
     
     
     
@@ -572,17 +592,19 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     
     //draw the light source
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    glUniform1i(_textureUniform, 0);
+
     _posX = _lightPos.x;
     _posY = _lightPos.y;
     _posZ = _lightPos.z;
     scaleX = 0.2;
     scaleY = 0.2;
     scaleZ = 0.2;
+    _rotateX = 0;
+    _rotateY = 0;
+    _rotateZ = 0;
     _angle = 0;
-    material = metalMaterial;
+    material = metal;
+    
     
     [self updateProjection];
     [self updateTransform];
@@ -596,16 +618,18 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     
     //ground
     //using  texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _groundTexture);
     glUniform1i(_textureUniform, 0);
     _posX = 0;
     _posY = 0;
     _posZ = -30;
-    scaleX = 10;
-    scaleZ = 10;
+    scaleX = 15;
+    scaleY = 0;
+    scaleZ = 15;
+    _rotateX = 0;
+    _rotateY = 0;
+    _rotateZ = 0;
     _angle = 0;
-    material = groundMaterial;
+    material = ground;
     
     [self updateProjection];
     [self updateTransform];
@@ -616,10 +640,10 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
                    GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
     //cube A
-    //using  texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    glUniform1i(_textureUniform, 0);
+    //applying  texture
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _myTexture);
+//    glUniform1i(_textureUniform, 0);
     _posX = 0.0;
     _posY = 2.0;
     _posZ = -30.0;
@@ -634,7 +658,7 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     scaleX = 2;
     scaleY = _posY;
     scaleZ = 2;
-    material = metalMaterial;
+    material = metal;
     
     [self updateProjection];
     [self updateTransform];
@@ -649,10 +673,10 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     glBindVertexArray(0);//unbind
     
     //cube 2
-    //using  texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _woodTexture);
-    glUniform1i(_textureUniform, 0);
+    //applying  texture
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+//    glUniform1i(_textureUniform, 0);
     _posX = -5.0;
     _posY = 1.5;
     _posZ = -30.0;
@@ -660,15 +684,16 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
 //    _rotateX = 1.0;
 //    _rotateY = -1.0;
 //    _rotateZ = 1.0;
+//    static GLfloat angleB = 0;
+//    angleB += 0.3;
+//    _angle = angleB;
 //
     scaleX = 1.5;
     scaleY = _posY;
     scaleZ = 1.5;
     
-//    static GLfloat angleB = 0;
-//    angleB += 0.3;
-//    _angle = angleB;
-    material = woodMaterial;
+
+    material = wood;
     [self updateProjection];
     [self updateTransform];
     [self updateView];
@@ -681,8 +706,8 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     
     //cube C
     //using  texture
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _woodTexture);
     glUniform1i(_textureUniform, 0);
     
     _posX = 5.0;
@@ -692,15 +717,16 @@ const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.
     _rotateX = -1.0;
     _rotateY = 1.0;
     _rotateZ = 1.0;
+    static GLfloat angleC = 0;
+    angleC += 2;
+    _angle = angleC;
     
     scaleX = 1;
     scaleY = 1;
     scaleZ = 1;
-
-    static GLfloat angleC = 0;
-    angleC += 2;
-    _angle = angleC;
-    material = woodMaterial;
+    
+    material = wood;
+    
     [self updateProjection];
     [self updateTransform];
     [self updateView];
