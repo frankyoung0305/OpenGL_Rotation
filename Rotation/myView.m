@@ -247,16 +247,22 @@ const GLubyte groundIndices[] = {
     // Get the uniform view matrix slot from program
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
     
-    _lightDrcSlot = glGetUniformLocation(_programHandle, "lightDirection");
+//    _lightDrcSlot = glGetUniformLocation(_programHandle, "lightDirection");
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
     _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
     _specularMapSlot = glGetUniformLocation(_programHandle, "material.specular");
     _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
     
+    _lightPositionSlot = glGetUniformLocation(_programHandle, "light.position");
     _lightAmbientSlot = glGetUniformLocation(_programHandle, "light.ambient");
     _lightDiffuseSlot = glGetUniformLocation(_programHandle, "light.diffuse");
     _lightSpecularSlot = glGetUniformLocation(_programHandle, "light.specular");
+    _lightConstantSlot = glGetUniformLocation(_programHandle, "light.constant");
+    _lightLinearSlot = glGetUniformLocation(_programHandle, "light.linear");
+    _lightQuadraticSlot = glGetUniformLocation(_programHandle, "light.quadratic");
+    
+    
     
 }
 
@@ -295,9 +301,13 @@ const GLubyte groundIndices[] = {
     tgtZ = -1;
 }
 - (void)setupLight{
-    _lightDirc.x = 100;
-    _lightDirc.y = 100;
-    _lightDirc.z = 100;
+    light.position.x = 0.0;
+    light.position.y = 0.0;
+    light.position.z = 0.0;
+    
+    light.constant = 1.0f;
+    light.linear = 0.09f;
+    light.quadratic = 0.032f;
     
 
     material._difsLightingMap = _myTexture;
@@ -467,8 +477,8 @@ const GLubyte groundIndices[] = {
     glBindTexture(GL_TEXTURE_2D, _frameTexture);
 
     
-    [self setupMaterial:&metal withDfsTexture:1 spcTexture:4 Shininess:256.0];
-    [self setupMaterial:&ground withDfsTexture:2 spcTexture:4 Shininess:8.0];
+    [self setupMaterial:&metal withDfsTexture:1 spcTexture:1 Shininess:256.0];
+    [self setupMaterial:&ground withDfsTexture:2 spcTexture:2 Shininess:8.0];
     [self setupMaterial:&wood withDfsTexture:3 spcTexture:4 Shininess:256.0];
 //
 //    NSLog(@"metal.dif = %u, _metaltex = %u", metal._difsLightingMap, _myTexture);
@@ -539,95 +549,108 @@ const GLubyte groundIndices[] = {
 }
 
 - (void) updateLight{
-    glUniform3f(_lightDrcSlot, _lightDirc.x, _lightDirc.y, _lightDirc.y);
-    
-    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
-//    glUniform3f(_specularSlot, material.specular.x, material.specular.y, material.specular.z);
-    glUniform1i(_specularMapSlot, material._spclLightingMap);
-    glUniform1f(_shininessSlot, material.shininess);
-    
+//    glUniform3f(_lightDrcSlot, _lightDirc.x, _lightDirc.y, _lightDirc.y);
+//    update light para
+    glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
     glUniform3f(_lightAmbientSlot, light.ambient.x, light.ambient.y, light.ambient.z);
     glUniform3f(_lightDiffuseSlot, light.diffuse.x, light.diffuse.y, light.diffuse.z);
     glUniform3f(_lightSpecularSlot, light.specular.x, light.specular.y, light.specular.z);
+    glUniform1f(_lightConstantSlot, light.constant);
+    glUniform1f(_lightLinearSlot, light.linear);
+    glUniform1f(_lightQuadraticSlot, light.quadratic);
+}
+- (void) updateMaterial{
+    //update material para
+    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
+    glUniform1i(_specularMapSlot, material._spclLightingMap);
+    glUniform1f(_shininessSlot, material.shininess);
 }
 
-//////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+///////////////////////////////////////////////////////////
+
+- (void)inintScene{
+    //set viewport
+    //使用glViewport设置UIView的一部分来进行渲染
+
+    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+
+    //static light spot
+    //set light source position
+    light.position.x = 0.0f;
+    light.position.y = 0.0f;
+    light.position.z = -25.0f;
+    //set Attenuation(衰减)
+    light.constant = 1.0f;
+    light.linear = 0.09f;
+    light.quadratic = 0.032f;
+    //light color
+    ksVec3 lightColor = {1.0, 1.0, 1.0};
+    ksVec3 abntIndex = {0.1, 0.1, 0.1};
+    ksVec3 difsIndex = {0.9, 0.9, 0.9};
+    lightColor.x = 1.0;
+    lightColor.y = 1.0;
+    lightColor.z = 1.0;
+    fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
+    fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
+    [self updateLight]; //static light
+    
+    [self updateProjection];// 更新投影矩阵
+
+    
+    
+    
+    
+    //look at the same spot
+    tgtX = 0;
+    tgtY = 0;
+    tgtZ = -30;
+    [self updateView];
+    [self updateProjection];
+}
+
+//////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
     glClearColor(0.1, 0.1, 0.1, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     //set view parameters
-//    static float viewRotateAngle = 3.0/2.0*E_PI;
-//    float viewRotateRad = 15;
-//    eyeX = viewRotateRad*cosf(viewRotateAngle);
-//    eyeY = 10;
-//    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
-//    viewRotateAngle += 0.01;
-    eyeX = 0.0f;
-    eyeY = 0.0f;
-    eyeZ = -10.0f;
+    static float viewRotateAngle = 0.5*E_PI;
+    float viewRotateRad = 15;
+    eyeX = viewRotateRad*cosf(viewRotateAngle);
+    eyeY = 0.0;
+    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
+    viewRotateAngle += 0.01;
+//////////    static eye pos
+//    eyeX = 0.0f;
+//    eyeY = 0.0f;
+//    eyeZ = -10.0f;
     //look at targets
-    tgtX = 0;
-    tgtY = 0;
-    tgtZ = -30;
+    
     [self updateView];
     
     //set light paras
-    //rotate light
-    static float lightRotAngle = 0;
-    float lightRotRad = 100;
-    _lightDirc.x = lightRotRad * cosf(lightRotAngle);
-    _lightDirc.y = lightRotRad * sinf(lightRotAngle);
-    _lightDirc.z = -30;
-    lightRotAngle += 0.001;
-    /////////////////
+    //rotate light direc
+//    static float lightRotAngle = 0;
+//    float lightRotRad = 100;
+//    _lightDirc.x = lightRotRad * cosf(lightRotAngle);
+//    _lightDirc.y = lightRotRad * sinf(lightRotAngle);
+//    _lightDirc.z = -30;
+//    lightRotAngle += 0.001;
+//////static light dirct
 //    _lightDirc.x = -0.2;
 //    _lightDirc.y = -1.0;
 //    _lightDirc.z = -0.3;
     
-    //change light color
-    ksVec3 lightColor = {1.0, 1.0, 1.0};
+    //varing light color
 //    static float colorAngle = 0;
-    ksVec3 abntIndex = {0.1, 0.1, 0.1};
-    ksVec3 difsIndex = {0.9, 0.9, 0.9};
-    
 //    lightColor.x = sinf(colorAngle * 2.0);
 //    lightColor.y = sinf(colorAngle * 0.7);
 //    lightColor.z = sinf(colorAngle * 1.3);
-    
-    lightColor.x = 1.0;
-    lightColor.y = 1.0;
-    lightColor.z = 1.0;
-    fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
-    fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
 //    colorAngle += 0.01;
-    [self updateLight];
 
-    //使用glViewport设置UIView的一部分来进行渲染
-    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
-    [self updateProjection];// 更新投影矩阵
     
-    //draw the light source
-    _posX = -_lightDirc.x;
-    _posY = -_lightDirc.y;
-    _posZ = -_lightDirc.z;
-    scaleX = 0.2;
-    scaleY = 0.2;
-    scaleZ = 0.2;
-    _rotateX = 0;
-    _rotateY = 0;
-    _rotateZ = 0;
-    _angle = 0;
-    material = metal;
-    
-    [self updateTransform];
-    [self updateLight];
-    glBindVertexArray(_objectA);
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
-    
+
 //    //ground
 //    //using  texture
 //    glUniform1i(_textureUniform, 0);
@@ -644,19 +667,21 @@ const GLubyte groundIndices[] = {
 //    material = ground;
 //
 //    [self updateTransform];
-//    [self updateLight];
+//    [self updateMaterial];
 //    glBindVertexArray(_groundObj);
 //    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
 //                   GL_UNSIGNED_BYTE, 0);
 //    glBindVertexArray(0);//unbind
     
-    //////////////////
+    /////////////////////////////
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);
     //applying  texture
     //    glActiveTexture(GL_TEXTURE0);
     //    glBindTexture(GL_TEXTURE_2D, _myTexture);
     //    glUniform1i(_textureUniform, 0);
+    material = wood;
+    [self updateMaterial]; //all using same material
     for(unsigned int i = 0; i < 10; i++)
     {
         _posX = cubePositions[i].x;
@@ -671,14 +696,36 @@ const GLubyte groundIndices[] = {
         scaleX = 0.7f;
         scaleY = 0.7f;
         scaleZ = 0.7f;
-        material = wood;
-        [self updateLight];
         [self updateTransform];
         //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
         //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     ///////////////////
+    //draw the light source
+    //    _posX = -_lightDirc.x;
+    //    _posY = -_lightDirc.y;
+    //    _posZ = -_lightDirc.z;
+    _posX = light.position.x;
+    _posY = light.position.y;
+    _posZ = light.position.z;
+    scaleX = 0.1;
+    scaleY = 0.1;
+    scaleZ = 0.1;
+    _rotateX = 0;
+    _rotateY = 0;
+    _rotateZ = 0;
+    _angle = 0;
+    [self updateTransform];
+    
+//    material = metal;
+//    [self updateMaterial];
+    
+    glBindVertexArray(_objectA);
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+                   GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);//unbind
+    
     
     //cube A
 
@@ -696,10 +743,10 @@ const GLubyte groundIndices[] = {
     scaleX = 1.0f;
     scaleY = 1.0f;
     scaleZ = 1.0f;
-    material = metal;
-    
     [self updateTransform];
-    [self updateLight];
+    
+//    material = metal;
+//    [self updateMaterial];
 
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
@@ -725,10 +772,10 @@ const GLubyte groundIndices[] = {
     scaleY = 1.0f;
     scaleZ = 1.0f;
     
-
-    material = metal;
+// material doesnt change here, dont have to update paras
+//    material = metal;
+//    [self updateMaterial];
     [self updateTransform];
-    [self updateLight];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
@@ -739,7 +786,7 @@ const GLubyte groundIndices[] = {
     //using  texture
 //    glActiveTexture(GL_TEXTURE0);
 //    glBindTexture(GL_TEXTURE_2D, _woodTexture);
-    glUniform1i(_textureUniform, 0);
+//    glUniform1i(_textureUniform, 0);
     
     _posX = 5.0;
     _posY = 2.0;
@@ -756,10 +803,10 @@ const GLubyte groundIndices[] = {
     scaleY = 1;
     scaleZ = 1;
     
-    material = metal;
+//    material = metal;
     
     [self updateTransform];
-    [self updateLight];
+//    [self updateMaterial];
     
     glBindVertexArray(_objectA);// bind objA
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),

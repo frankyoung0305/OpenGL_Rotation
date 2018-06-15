@@ -16,10 +16,16 @@ typedef struct {  //光照材质
     float shininess;
 } Material;
 
-typedef struct {    
+typedef struct {
+    ksVec3 position;
+    
     ksVec3 ambient;
     ksVec3 diffuse;
     ksVec3 specular;
+    
+    float constant;
+    float linear;
+    float quadratic;
 } Light;
 
 @interface GLView : UIView
@@ -59,12 +65,17 @@ typedef struct {
     GLint _projectionSlot;
     
     //light
-    GLint _lightDrcSlot;
+//    GLint _lightDrcSlot;
     GLint _eyePosSlot;
 //    GLint _ambientSlot;  //material
     GLint _diffuseMapSlot;  //lighting map
     GLint _specularMapSlot;
     GLint _shininessSlot;
+    
+    GLuint _lightPositionSlot;
+    GLuint _lightConstantSlot;
+    GLuint _lightLinearSlot;
+    GLuint _lightQuadraticSlot;
     GLint _lightAmbientSlot;  //light
     GLint _lightDiffuseSlot;
     GLint _lightSpecularSlot;
@@ -74,7 +85,7 @@ typedef struct {
     ksMatrix4 _modelViewMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
-    ksVec3 _lightDirc;
+//    ksVec3 _lightDirc;
 
     
     // vals for projection
@@ -128,18 +139,14 @@ typedef struct {
 - (void)setupTransform;//encapsule to func 'setup'
 - (void)setupLookView;
 
-
-- (void)setup;
-
 // func to compile a program to '_programHandle', get and enable entry points of program:_positionSlot, _colorSlot, _modelViewSlot, _projectionSlot
 - (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType;
 - (void)compileShaders;
 
-
 //gen and set VAO
 - (void)setupVAO;
-
 - (void)setupVBOs;
+- (void)setup;
 
 //bind VAO and set program
 //- (void)loadVertexArray: (GLuint) VAID withProgram: (GLuint) programHandle;
@@ -149,6 +156,10 @@ typedef struct {
 - (void)updateView;
 - (void)updateProjection;
 - (void)updateLight;
+- (void)updateMaterial;
+
+//update vals that don't change while rendering
+- (void)inintScene;
 
 - (void)render;
 
