@@ -16,11 +16,19 @@
 
 #define E_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 
-
-
-/////-square
-
-
+ksVec3 cubePositions[] = {
+    { 0.0f,  0.0f,  0.0f },
+    { 2.0f,  5.0f, -15.0f},
+    {-1.5f, -2.2f, -2.5f },
+    {-3.8f, -2.0f, -12.3f},
+    { 2.4f, -0.4f, -3.5f },
+    {-1.7f,  3.0f, -7.5f },
+    { 1.3f, -2.0f, -2.5f },
+    { 1.5f,  2.0f, -2.5f },
+    { 1.5f,  0.2f, -1.5f },
+    {-1.3f,  1.0f, -1.5f }
+};
+/////cube
 const Vertex Vertices[] = {
     // Front
     {{1, -1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {TEX_COORD_MAX, 0}},
@@ -53,7 +61,7 @@ const Vertex Vertices[] = {
     {{-1, -1, 1}, {0, 1, 1, 1}, {0, -1, 0}, {0, TEX_COORD_MAX}},
     {{-1, -1, -1}, {0, 1, 1, 1}, {0, -1, 0}, {0, 0}}
 };
-
+//ground
 const Vertex groundVert[] = {
     {{1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, 0}},
     {{1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, GRD_TEX_COORD_MAX}},
@@ -82,6 +90,7 @@ const GLubyte Indices[] = {
     20, 21, 22,
     22, 23, 20
 };
+//ground
 const GLubyte groundIndices[] = {
     0, 1, 2,
     2, 3, 0,
@@ -549,16 +558,20 @@ const GLubyte groundIndices[] = {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     //set view parameters
-    static float viewRotateAngle = 3.0/2.0*E_PI;
-    float viewRotateRad = 15;
-    eyeX = viewRotateRad*cosf(viewRotateAngle);
-    eyeY = 10;
-    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
-    viewRotateAngle += 0.01;
+//    static float viewRotateAngle = 3.0/2.0*E_PI;
+//    float viewRotateRad = 15;
+//    eyeX = viewRotateRad*cosf(viewRotateAngle);
+//    eyeY = 10;
+//    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
+//    viewRotateAngle += 0.01;
+    eyeX = 0.0f;
+    eyeY = 0.0f;
+    eyeZ = -10.0f;
     //look at targets
     tgtX = 0;
-    tgtY = 2;
+    tgtY = 0;
     tgtZ = -30;
+    [self updateView];
     
     //set light paras
     //rotate light
@@ -585,14 +598,13 @@ const GLubyte groundIndices[] = {
     fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
 //    colorAngle += 0.01;
-    
-    
-    
+    [self updateLight];
+
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+    [self updateProjection];// 更新投影矩阵
     
     //draw the light source
-
     _posX = _lightPos.x;
     _posY = _lightPos.y;
     _posZ = _lightPos.z;
@@ -605,70 +617,87 @@ const GLubyte groundIndices[] = {
     _angle = 0;
     material = metal;
     
-    
-    [self updateProjection];
     [self updateTransform];
-    [self updateView];
     [self updateLight];
     glBindVertexArray(_objectA);
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
                    GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
     
-    
-    //ground
-    //using  texture
-    glUniform1i(_textureUniform, 0);
-    _posX = 0;
-    _posY = 0;
-    _posZ = -30;
-    scaleX = 15;
-    scaleY = 0;
-    scaleZ = 15;
-    _rotateX = 0;
-    _rotateY = 0;
-    _rotateZ = 0;
-    _angle = 0;
-    material = ground;
-    
-    [self updateProjection];
-    [self updateTransform];
-    [self updateView];
-    [self updateLight];
-    glBindVertexArray(_groundObj);
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
-    //cube A
-    //applying  texture
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, _myTexture);
+//    //ground
+//    //using  texture
 //    glUniform1i(_textureUniform, 0);
+//    _posX = 0;
+//    _posY = -3;
+//    _posZ = -30;
+//    scaleX = 15;
+//    scaleY = 0;
+//    scaleZ = 15;
+//    _rotateX = 0;
+//    _rotateY = 0;
+//    _rotateZ = 0;
+//    _angle = 0;
+//    material = ground;
+//
+//    [self updateTransform];
+//    [self updateLight];
+//    glBindVertexArray(_groundObj);
+//    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
+//                   GL_UNSIGNED_BYTE, 0);
+//    glBindVertexArray(0);//unbind
+    
+    //////////////////
+    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+    glBindVertexArray(_objectA);
+    //applying  texture
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    //    glUniform1i(_textureUniform, 0);
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        _posX = cubePositions[i].x;
+        _posY = cubePositions[i].y;
+        _posZ = cubePositions[i].z - 30;
+        
+        _rotateX = 1.0f;
+        _rotateY = 0.3f;
+        _rotateZ = 0.5f;
+        float angle = 20.0f * i;
+        _angle = angle;
+        scaleX = 0.7f;
+        scaleY = 0.7f;
+        scaleZ = 0.7f;
+        material = wood;
+        [self updateLight];
+        [self updateTransform];
+        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
+        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    }
+    ///////////////////
+    
+    //cube A
+
     _posX = 0.0;
-    _posY = 2.0;
-    _posZ = -30.0;
+    _posY = 4.0;
+    _posZ = -25.0;
     
-//    _rotateX = 1.0;
-//    _rotateY = 1.0;
-//    _rotateZ = 1.0;
-//    static GLfloat angleA = 0;
+    _rotateX = 1.0;
+    _rotateY = 1.0;
+    _rotateZ = 1.0;
+    static GLfloat angleA = 0;
 //    angleA += 2;
-//    _angle = angleA;
+    _angle = angleA;
     
-    scaleX = 2;
-    scaleY = _posY;
-    scaleZ = 2;
+    scaleX = 1.0f;
+    scaleY = 1.0f;
+    scaleZ = 1.0f;
     material = metal;
     
-    [self updateProjection];
     [self updateTransform];
-    [self updateView];
     [self updateLight];
 
-// 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);// bind objA
-//    //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
-//    //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0);//unbind
     
@@ -689,14 +718,12 @@ const GLubyte groundIndices[] = {
 //    _angle = angleB;
 //
     scaleX = 1.5;
-    scaleY = _posY;
+    scaleY = 1.5;
     scaleZ = 1.5;
     
 
-    material = wood;
-    [self updateProjection];
+    material = metal;
     [self updateTransform];
-    [self updateView];
     [self updateLight];
     
     glBindVertexArray(_objectA);// bind objA
@@ -725,11 +752,9 @@ const GLubyte groundIndices[] = {
     scaleY = 1;
     scaleZ = 1;
     
-    material = wood;
+    material = metal;
     
-    [self updateProjection];
     [self updateTransform];
-    [self updateView];
     [self updateLight];
     
     glBindVertexArray(_objectA);// bind objA
