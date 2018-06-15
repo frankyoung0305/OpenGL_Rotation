@@ -59,7 +59,7 @@ typedef struct {
     GLint _projectionSlot;
     
     //light
-    GLint _lightPosSlot;
+    GLint _lightDrcSlot;
     GLint _eyePosSlot;
 //    GLint _ambientSlot;  //material
     GLint _diffuseMapSlot;  //lighting map
@@ -74,7 +74,7 @@ typedef struct {
     ksMatrix4 _modelViewMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
-    ksVec3 _lightPos;
+    ksVec3 _lightDirc;
 
     
     // vals for projection

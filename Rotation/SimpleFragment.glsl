@@ -23,7 +23,7 @@ uniform sampler2D Texture;
 
 uniform Material material;
 uniform Light light;
-uniform vec3 lightPos;
+uniform vec3 lightDirection;
 uniform vec3 eyePos;
 
 
@@ -33,7 +33,7 @@ void main(void) {
 
     
     vec3 norm = normalize(fragNormal);
-    vec3 lightDir = normalize(lightPos - worldPos);
+    vec3 lightDir = normalize(-lightDirection);
     float diff = max(dot(norm, lightDir), 0.0);
     vec3 diffuse = light.diffuse * diff * vec3(texture(material.diffuse, TexCoordOut));
 

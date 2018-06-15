@@ -247,7 +247,7 @@ const GLubyte groundIndices[] = {
     // Get the uniform view matrix slot from program
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
     
-    _lightPosSlot = glGetUniformLocation(_programHandle, "lightPos");
+    _lightDrcSlot = glGetUniformLocation(_programHandle, "lightDirection");
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
     _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
@@ -295,9 +295,9 @@ const GLubyte groundIndices[] = {
     tgtZ = -1;
 }
 - (void)setupLight{
-    _lightPos.x = 100;
-    _lightPos.y = 100;
-    _lightPos.z = 100;
+    _lightDirc.x = 100;
+    _lightDirc.y = 100;
+    _lightDirc.z = 100;
     
 
     material._difsLightingMap = _myTexture;
@@ -539,7 +539,7 @@ const GLubyte groundIndices[] = {
 }
 
 - (void) updateLight{
-    glUniform3f(_lightPosSlot, _lightPos.x, _lightPos.y, _lightPos.y);
+    glUniform3f(_lightDrcSlot, _lightDirc.x, _lightDirc.y, _lightDirc.y);
     
     glUniform1i(_diffuseMapSlot, material._difsLightingMap);
 //    glUniform3f(_specularSlot, material.specular.x, material.specular.y, material.specular.z);
@@ -577,10 +577,14 @@ const GLubyte groundIndices[] = {
     //rotate light
     static float lightRotAngle = 0;
     float lightRotRad = 100;
-    _lightPos.x = lightRotRad * cosf(lightRotAngle);
-    _lightPos.y = lightRotRad * sinf(lightRotAngle);
-    _lightPos.z = -30;
-    lightRotAngle += 0.01;
+    _lightDirc.x = lightRotRad * cosf(lightRotAngle);
+    _lightDirc.y = lightRotRad * sinf(lightRotAngle);
+    _lightDirc.z = -30;
+    lightRotAngle += 0.001;
+    /////////////////
+//    _lightDirc.x = -0.2;
+//    _lightDirc.y = -1.0;
+//    _lightDirc.z = -0.3;
     
     //change light color
     ksVec3 lightColor = {1.0, 1.0, 1.0};
@@ -605,9 +609,9 @@ const GLubyte groundIndices[] = {
     [self updateProjection];// 更新投影矩阵
     
     //draw the light source
-    _posX = _lightPos.x;
-    _posY = _lightPos.y;
-    _posZ = _lightPos.z;
+    _posX = -_lightDirc.x;
+    _posY = -_lightDirc.y;
+    _posZ = -_lightDirc.z;
     scaleX = 0.2;
     scaleY = 0.2;
     scaleZ = 0.2;
@@ -717,9 +721,9 @@ const GLubyte groundIndices[] = {
 //    angleB += 0.3;
 //    _angle = angleB;
 //
-    scaleX = 1.5;
-    scaleY = 1.5;
-    scaleZ = 1.5;
+    scaleX = 1.0f;
+    scaleY = 1.0f;
+    scaleZ = 1.0f;
     
 
     material = metal;
