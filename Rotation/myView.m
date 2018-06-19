@@ -611,11 +611,11 @@ const GLubyte groundIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
-    glClearColor(0.1, 0.1, 0.1, 1.0);
+    glClearColor(0.05, 0.05, 0.05, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glEnable(GL_DEPTH_TEST);
     //set view parameters
-    static float viewRotateAngle = 0.5*E_PI;
+    static float viewRotateAngle = 0.57*E_PI;
     float viewRotateRad = 15;
     eyeX = viewRotateRad*cosf(viewRotateAngle);
     eyeY = 0.0;
@@ -796,7 +796,7 @@ const GLubyte groundIndices[] = {
     _rotateY = 1.0;
     _rotateZ = 1.0;
     static GLfloat angleC = 0;
-    angleC += 2;
+//    angleC += 2;
     _angle = angleC;
     
     scaleX = 1;

@@ -25,7 +25,6 @@
 		3CA461C520C8039D00B69F81 /* ksMatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C120C8039D00B69F81 /* ksMatrix.c */; };
 		3CA461C620C8039D00B69F81 /* ksVector.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C220C8039D00B69F81 /* ksVector.c */; };
 		3CA65F7320C92C1D00B58A6A /* pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 3CA65F7220C92C1D00B58A6A /* pic.png */; };
-		3CB2AB5620D3DDA000140263 /* cppView.cpp in Sources */ = {isa = PBXBuildFile; fileRef = 3CB2AB5420D3DDA000140263 /* cppView.cpp */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -75,8 +74,6 @@
 		3CA461C320C8039D00B69F81 /* ksVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksVector.h; sourceTree = "<group>"; };
 		3CA461C420C8039D00B69F81 /* ksMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksMatrix.h; sourceTree = "<group>"; };
 		3CA65F7220C92C1D00B58A6A /* pic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic.png; sourceTree = "<group>"; };
-		3CB2AB5420D3DDA000140263 /* cppView.cpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.cpp; path = cppView.cpp; sourceTree = "<group>"; };
-		3CB2AB5520D3DDA000140263 /* cppView.hpp */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.h; path = cppView.hpp; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -149,8 +146,6 @@
 				3C93740520C41E3E00A48C10 /* LaunchScreen.storyboard */,
 				3C93740820C41E3E00A48C10 /* Info.plist */,
 				3C93740920C41E3E00A48C10 /* main.m */,
-				3CB2AB5420D3DDA000140263 /* cppView.cpp */,
-				3CB2AB5520D3DDA000140263 /* cppView.hpp */,
 			);
 			path = Rotation;
 			sourceTree = "<group>";
@@ -312,7 +307,6 @@
 			files = (
 				3CA461C620C8039D00B69F81 /* ksVector.c in Sources */,
 				3C9373FF20C41E3D00A48C10 /* ViewController.m in Sources */,
-				3CB2AB5620D3DDA000140263 /* cppView.cpp in Sources */,
 				3C93740A20C41E3E00A48C10 /* main.m in Sources */,
 				3C93743B20C5082A00A48C10 /* myView.m in Sources */,
 				3C9373FC20C41E3D00A48C10 /* AppDelegate.m in Sources */,
