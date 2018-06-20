@@ -255,12 +255,15 @@ const GLubyte groundIndices[] = {
     _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
     
     _lightPositionSlot = glGetUniformLocation(_programHandle, "light.position");
+    _lightDircSlot = glGetUniformLocation(_programHandle, "light.direction");
     _lightAmbientSlot = glGetUniformLocation(_programHandle, "light.ambient");
     _lightDiffuseSlot = glGetUniformLocation(_programHandle, "light.diffuse");
     _lightSpecularSlot = glGetUniformLocation(_programHandle, "light.specular");
     _lightConstantSlot = glGetUniformLocation(_programHandle, "light.constant");
     _lightLinearSlot = glGetUniformLocation(_programHandle, "light.linear");
     _lightQuadraticSlot = glGetUniformLocation(_programHandle, "light.quadratic");
+    _lightCutOffSlot = glGetUniformLocation(_programHandle, "light.cutOff");
+    _lightOuterCutOffSlot = glGetUniformLocation(_programHandle, "light.outerCutOff");
     
     
     
@@ -304,10 +307,16 @@ const GLubyte groundIndices[] = {
     light.position.x = 0.0;
     light.position.y = 0.0;
     light.position.z = 0.0;
+    light.direction.x = 0.0;
+    light.direction.y = 0.0;
+    light.direction.z = -1.0;
     
     light.constant = 1.0f;
     light.linear = 0.09f;
     light.quadratic = 0.032f;
+    
+    light.cutOff = cosf(10.0 / 180.0 * E_PI);
+    light.outerCutOff = cosf(12.0 / 180.0 * E_PI);
     
 
     material._difsLightingMap = _myTexture;
@@ -552,12 +561,15 @@ const GLubyte groundIndices[] = {
 //    glUniform3f(_lightDrcSlot, _lightDirc.x, _lightDirc.y, _lightDirc.y);
 //    update light para
     glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
+    glUniform3f(_lightDircSlot, light.direction.x, light.direction.y, light.direction.z);
     glUniform3f(_lightAmbientSlot, light.ambient.x, light.ambient.y, light.ambient.z);
     glUniform3f(_lightDiffuseSlot, light.diffuse.x, light.diffuse.y, light.diffuse.z);
     glUniform3f(_lightSpecularSlot, light.specular.x, light.specular.y, light.specular.z);
     glUniform1f(_lightConstantSlot, light.constant);
     glUniform1f(_lightLinearSlot, light.linear);
     glUniform1f(_lightQuadraticSlot, light.quadratic);
+    glUniform1f(_lightCutOffSlot, light.cutOff);
+    glUniform1f(_lightOuterCutOffSlot, light.outerCutOff);
 }
 - (void) updateMaterial{
     //update material para
@@ -579,6 +591,10 @@ const GLubyte groundIndices[] = {
     light.position.x = 0.0f;
     light.position.y = 0.0f;
     light.position.z = -25.0f;
+    light.direction.x = 0.0f;
+    light.direction.y = 0.0f;
+    light.direction.z = -1.0f;
+    
     //set Attenuation(衰减)
     light.constant = 1.0f;
     light.linear = 0.09f;
@@ -592,6 +608,9 @@ const GLubyte groundIndices[] = {
     lightColor.z = 1.0;
     fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
+    
+    light.cutOff = cosf(12.5 / 180.0 * E_PI);
+    light.outerCutOff = cosf(15.5 / 180.0 * E_PI);
     [self updateLight]; //static light
     
     [self updateProjection];// 更新投影矩阵
@@ -616,7 +635,7 @@ const GLubyte groundIndices[] = {
     glEnable(GL_DEPTH_TEST);
     //set view parameters
     static float viewRotateAngle = 0.57*E_PI;
-    float viewRotateRad = 15;
+    float viewRotateRad = 5;
     eyeX = viewRotateRad*cosf(viewRotateAngle);
     eyeY = 0.0;
     eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
@@ -628,6 +647,14 @@ const GLubyte groundIndices[] = {
     //look at targets
     
     [self updateView];
+    light.position.x = eyeX;
+    light.position.y = eyeY;
+    light.position.z = eyeZ;
+    light.direction.x = tgtX - eyeX;
+    light.direction.y = tgtY - eyeY;
+    light.direction.z = tgtZ  -eyeZ;
+    glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
+    glUniform3f(_lightDircSlot, light.direction.x, light.direction.y, light.direction.z);
     
     //set light paras
     //rotate light direc

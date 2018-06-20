@@ -18,6 +18,7 @@ typedef struct {  //光照材质
 
 typedef struct {
     ksVec3 position;
+    ksVec3 direction;
     
     ksVec3 ambient;
     ksVec3 diffuse;
@@ -26,6 +27,8 @@ typedef struct {
     float constant;
     float linear;
     float quadratic;
+    float cutOff;
+    float outerCutOff;
 } Light;
 
 @interface GLView : UIView
@@ -73,12 +76,15 @@ typedef struct {
     GLint _shininessSlot;
     
     GLuint _lightPositionSlot;
+    GLuint _lightDircSlot;
     GLuint _lightConstantSlot;
     GLuint _lightLinearSlot;
     GLuint _lightQuadraticSlot;
     GLint _lightAmbientSlot;  //light
     GLint _lightDiffuseSlot;
     GLint _lightSpecularSlot;
+    GLuint _lightCutOffSlot;
+    GLuint _lightOuterCutOffSlot;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
@@ -166,5 +172,6 @@ typedef struct {
 
 
 @end
+
 
 
