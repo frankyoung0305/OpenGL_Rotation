@@ -96,16 +96,6 @@ const GLubyte groundIndices[] = {
     2, 3, 0,
 };
 
-//typedef struct {  //光照材质
-    //ksVec3 ambient;
-    //ksVec3 diffuse;
-    //ksVec3 specular;
-    //float shininess;
-//} Material;
-//const Material metalMaterial = {{1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, {1.0, 1.0, 1.0}, 256.0};
-//const Material groundMaterial = {{1.0, 1.0, 1.0},{1.0, 1.0, 1.0}, {0.1, 0.1, 0.1}, 0};
-//const Material woodMaterial = {{0.5, 0.25, 0.1}, {0.5, 0.25, 0.1}, {1.0, 1.0, 1.0}, 16};
-
 
 @implementation GLView : UIView
 
@@ -246,7 +236,6 @@ const GLubyte groundIndices[] = {
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
     // Get the uniform view matrix slot from program
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
-    
 //    _lightDrcSlot = glGetUniformLocation(_programHandle, "lightDirection");
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
@@ -265,14 +254,11 @@ const GLubyte groundIndices[] = {
     _lightCutOffSlot = glGetUniformLocation(_programHandle, "light.cutOff");
     _lightOuterCutOffSlot = glGetUniformLocation(_programHandle, "light.outerCutOff");
     
-    
-    
 }
 
 //////-shader
 
 - (void)setupProjection{
-
     _aspect = self.frame.size.width / self.frame.size.height;
     _sightAngleY = 60; //view y angle in degrees
     _nearZ = 1.0f;
@@ -318,7 +304,7 @@ const GLubyte groundIndices[] = {
     light.cutOff = cosf(10.0 / 180.0 * E_PI);
     light.outerCutOff = cosf(12.0 / 180.0 * E_PI);
     
-
+    
     material._difsLightingMap = _myTexture;
     material._spclLightingMap = _myTexture;
     material.shininess = 32.0; //init material
@@ -489,12 +475,7 @@ const GLubyte groundIndices[] = {
     [self setupMaterial:&metal withDfsTexture:1 spcTexture:1 Shininess:256.0];
     [self setupMaterial:&ground withDfsTexture:2 spcTexture:2 Shininess:8.0];
     [self setupMaterial:&wood withDfsTexture:3 spcTexture:4 Shininess:256.0];
-//
-//    NSLog(@"metal.dif = %u, _metaltex = %u", metal._difsLightingMap, _myTexture);
-//    NSLog(@"grd.dif = %u, _grdtex = %u", ground._difsLightingMap, _groundTexture);
-//    NSLog(@"wood.dif = %u, _woodtex = %u", wood._difsLightingMap, _woodTexture);
-
-
+    
 }
 
 ///////////////////////////////////////////
@@ -558,7 +539,6 @@ const GLubyte groundIndices[] = {
 }
 
 - (void) updateLight{
-//    glUniform3f(_lightDrcSlot, _lightDirc.x, _lightDirc.y, _lightDirc.y);
 //    update light para
     glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
     glUniform3f(_lightDircSlot, light.direction.x, light.direction.y, light.direction.z);
@@ -583,14 +563,13 @@ const GLubyte groundIndices[] = {
 - (void)inintScene{
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
-
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
 
     //static light spot
     //set light source position
     light.position.x = 0.0f;
     light.position.y = 0.0f;
-    light.position.z = -25.0f;
+    light.position.z = 0.0f;
     
     light.direction.x = 0.0f;
     light.direction.y = 0.0f;
@@ -604,9 +583,16 @@ const GLubyte groundIndices[] = {
     ksVec3 lightColor = {1.0, 1.0, 1.0};
     ksVec3 abntIndex = {0.1, 0.1, 0.1};
     ksVec3 difsIndex = {0.9, 0.9, 0.9};
+    
     lightColor.x = 1.0;
     lightColor.y = 1.0;
     lightColor.z = 1.0;
+    //varing light color
+    //    static float colorAngle = 0;
+    //    lightColor.x = sinf(colorAngle * 2.0);
+    //    lightColor.y = sinf(colorAngle * 0.7);
+    //    lightColor.z = sinf(colorAngle * 1.3);
+    //    colorAngle += 0.01;
     fyVectorGLSLProduct(&light.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&light.diffuse, &lightColor, &difsIndex);
     
@@ -614,18 +600,12 @@ const GLubyte groundIndices[] = {
     light.outerCutOff = cosf(15.5 / 180.0 * E_PI);
     [self updateLight]; //static light
     
-    [self updateProjection];// 更新投影矩阵
-
-    
-    
-    
-    
     //look at the same spot
     viewTgt.x = 0;
     viewTgt.y = 0;
-    viewTgt.z = -30;
+    viewTgt.z = 0;
     [self updateView];
-    [self updateProjection];
+    [self updateProjection];// 更新投影矩阵
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -633,74 +613,25 @@ const GLubyte groundIndices[] = {
 - (void)render {  //render func for shader
     glClearColor(0.05, 0.05, 0.05, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
     glEnable(GL_DEPTH_TEST);
+    
     //set view parameters
-    static float viewRotateAngle = 0.57*E_PI;
-    float viewRotateRad = 8;
+    static float viewRotateAngle = 0.57 * E_PI;
+    float viewRotateRad = 8.0;
     viewEye.x = viewRotateRad*cosf(viewRotateAngle);
     viewEye.y = 0.0;
-    viewEye.z = viewRotateRad*sinf(viewRotateAngle)-30;
+    viewEye.z = viewRotateRad*sinf(viewRotateAngle);
     viewRotateAngle += 0.01;
-//////////    static eye pos
-//    viewEye.x = 0.0f;
-//    viewEye.y = 0.0f;
-//    viewEye.z = -10.0f;
-    //look at targets
     
     [self updateView];
-//    light.position.x = viewEye.x;
-//    light.position.y = viewEye.y;
-//    light.position.z = viewEye.z;
-    light.position = viewEye;
-    light.direction.x = viewTgt.x - viewEye.x;
+
+    light.position = viewEye; //light from eye
+    light.direction.x = viewTgt.x - viewEye.x; //light point at tgt
     light.direction.y = viewTgt.y - viewEye.y;
     light.direction.z = viewTgt.z - viewEye.z;
-    glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
+    glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z); //update uinform
     glUniform3f(_lightDircSlot, light.direction.x, light.direction.y, light.direction.z);
-    
-    //set light paras
-    //rotate light direc
-//    static float lightRotAngle = 0;
-//    float lightRotRad = 100;
-//    _lightDirc.x = lightRotRad * cosf(lightRotAngle);
-//    _lightDirc.y = lightRotRad * sinf(lightRotAngle);
-//    _lightDirc.z = -30;
-//    lightRotAngle += 0.001;
-//////static light dirct
-//    _lightDirc.x = -0.2;
-//    _lightDirc.y = -1.0;
-//    _lightDirc.z = -0.3;
-    
-    //varing light color
-//    static float colorAngle = 0;
-//    lightColor.x = sinf(colorAngle * 2.0);
-//    lightColor.y = sinf(colorAngle * 0.7);
-//    lightColor.z = sinf(colorAngle * 1.3);
-//    colorAngle += 0.01;
-
-    
-
-//    //ground
-//    //using  texture
-//    glUniform1i(_textureUniform, 0);
-//    modelPos.x = 0;
-//    modelPos.y = -3;
-//    modelPos.z = -30;
-//    modelScale.x = 15;
-//    modelScale.y = 0;
-//    modelScale.z = 15;
-//    modleRotate.x = 0;
-//    modleRotate.y = 0;
-//    modleRotate.z = 0;
-//    _angle = 0;
-//    material = ground;
-//
-//    [self updateTransform];
-//    [self updateMaterial];
-//    glBindVertexArray(_groundObj);
-//    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-//                   GL_UNSIGNED_BYTE, 0);
-//    glBindVertexArray(0);//unbind
     
     /////////////////////////////
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
@@ -710,12 +641,10 @@ const GLubyte groundIndices[] = {
     //    glBindTexture(GL_TEXTURE_2D, _myTexture);
     //    glUniform1i(_textureUniform, 0);
     material = wood;
-    [self updateMaterial]; //all using same material
+    [self updateMaterial]; //all cubes using same material
     for(unsigned int i = 0; i < 10; i++)
     {
-        modelPos.x = cubePositions[i].x;
-        modelPos.y = cubePositions[i].y;
-        modelPos.z = cubePositions[i].z - 30;
+        modelPos = cubePositions[i];
         
         modleRotate.x = 1.0f;
         modleRotate.y = 0.3f;
@@ -730,118 +659,7 @@ const GLubyte groundIndices[] = {
         //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
-    ///////////////////
-    //draw the light source
-    //    modelPos.x = -_lightDirc.x;
-    //    modelPos.y = -_lightDirc.y;
-    //    modelPos.z = -_lightDirc.z;
-//    modelPos.x = light.position.x;
-//    modelPos.y = light.position.y;
-//    modelPos.z = light.position.z;
-    modelPos = light.position;
-    modelScale.x = 0.1;
-    modelScale.y = 0.1;
-    modelScale.z = 0.1;
-    modleRotate.x = 0;
-    modleRotate.y = 0;
-    modleRotate.z = 0;
-    _angle = 0;
-    [self updateTransform];
-    
-//    material = metal;
-//    [self updateMaterial];
-    
-    glBindVertexArray(_objectA);
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
-    
-    
-    //cube A
-
-    modelPos.x = 0.0;
-    modelPos.y = 4.0;
-    modelPos.z = -25.0;
-    
-    modleRotate.x = 1.0;
-    modleRotate.y = 1.0;
-    modleRotate.z = 1.0;
-    static GLfloat angleA = 0;
-//    angleA += 2;
-    _angle = angleA;
-    
-    modelScale.x = 1.0f;
-    modelScale.y = 1.0f;
-    modelScale.z = 1.0f;
-    [self updateTransform];
-    
-//    material = metal;
-//    [self updateMaterial];
-
-    glBindVertexArray(_objectA);// bind objA
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
-    
-    //cube 2
-    //applying  texture
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, _woodTexture);
-//    glUniform1i(_textureUniform, 0);
-    modelPos.x = -5.0;
-    modelPos.y = 1.5;
-    modelPos.z = -30.0;
-    
-//    modleRotate.x = 1.0;
-//    modleRotate.y = -1.0;
-//    modleRotate.z = 1.0;
-//    static GLfloat angleB = 0;
-//    angleB += 0.3;
-//    _angle = angleB;
-//
-    modelScale.x = 1.0f;
-    modelScale.y = 1.0f;
-    modelScale.z = 1.0f;
-    
-// material doesnt change here, dont have to update paras
-//    material = metal;
-//    [self updateMaterial];
-    [self updateTransform];
-    
-    glBindVertexArray(_objectA);// bind objA
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
-    
-    //cube C
-    //using  texture
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, _woodTexture);
-//    glUniform1i(_textureUniform, 0);
-    
-    modelPos.x = 5.0;
-    modelPos.y = 2.0;
-    modelPos.z = -30.0;
-    
-    modleRotate.x = -1.0;
-    modleRotate.y = 1.0;
-    modleRotate.z = 1.0;
-    static GLfloat angleC = 0;
-//    angleC += 2;
-    _angle = angleC;
-    
-    modelScale.x = 1;
-    modelScale.y = 1;
-    modelScale.z = 1;
-    
-//    material = metal;
-    
-    [self updateTransform];
-//    [self updateMaterial];
-    
-    glBindVertexArray(_objectA);// bind objA
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]),
-                   GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);//unbind
+    glBindVertexArray(0);//unbind vao
     
     //count fps
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
