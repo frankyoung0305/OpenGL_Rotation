@@ -63,7 +63,7 @@ typedef struct {
     GLuint _normalSlot;
     
     // uniform to set for every render action/object
-    GLint _modelViewSlot;
+    GLint _modelSlot;
     GLint _lookViewSlot;
     GLint _projectionSlot;
     
@@ -88,7 +88,7 @@ typedef struct {
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
-    ksMatrix4 _modelViewMatrix;
+    ksMatrix4 _modelMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
 //    ksVec3 _lightDirc;
@@ -101,26 +101,31 @@ typedef struct {
     float _farZ;
     
     // vals for the uniform transform matrices
-    float _posX;
-    float _posY;
-    float _posZ;
+//    float _posX;
+//    float _posY;
+//    float _posZ;
+    ksVec3 modelPos;
     
-    float _rotateX;
-    float _rotateY;
-    float _rotateZ;
+//    float _rotateX;
+//    float _rotateY;
+//    float _rotateZ;
     float _angle;
+    ksVec3 modleRotate;
     
-    float scaleX;
-    float scaleY;
-    float scaleZ;
+//    float scaleX;
+//    float scaleY;
+//    float scaleZ;
+    ksVec3 modelScale;
     
-    float eyeX;
-    float eyeY;
-    float eyeZ;
+//    float eyeX;
+//    float eyeY;
+//    float eyeZ;
+    ksVec3 viewEye;
     
-    float tgtX;
-    float tgtY;
-    float tgtZ;
+//    float tgtX;
+//    float tgtY;
+//    float tgtZ;
+    ksVec3 viewTgt;
     
     Material material;
     Material metal;
@@ -145,7 +150,7 @@ typedef struct {
 - (void)setupTransform;//encapsule to func 'setup'
 - (void)setupLookView;
 
-// func to compile a program to '_programHandle', get and enable entry points of program:_positionSlot, _colorSlot, _modelViewSlot, _projectionSlot
+// func to compile a program to '_programHandle', get and enable entry points of program:_positionSlot, _colorSlot, _modelSlot, _projectionSlot
 - (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType;
 - (void)compileShaders;
 

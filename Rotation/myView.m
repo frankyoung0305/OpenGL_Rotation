@@ -241,7 +241,7 @@ const GLubyte groundIndices[] = {
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
     
     // Get the uniform model-view matrix slot from program
-    _modelViewSlot = glGetUniformLocation(_programHandle, "modelView");
+    _modelSlot = glGetUniformLocation(_programHandle, "model");
     // Get the uniform projection matrix slot from program
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
     // Get the uniform view matrix slot from program
@@ -281,27 +281,27 @@ const GLubyte groundIndices[] = {
 
 //init transform matrix
 - (void)setupTransform{
-    _posX = 0.0;
-    _posY = 0.0;
-    _posZ = 0.0;
+    modelPos.x = 0.0;
+    modelPos.y = 0.0;
+    modelPos.z = 0.0;
     
-    _rotateX = 0.0;
-    _rotateY = 0.0;
-    _rotateZ = 0.0;
+    modleRotate.x = 0.0;
+    modleRotate.y = 0.0;
+    modleRotate.z = 0.0;
     _angle = 0.0;
     
-    scaleX = 1.0;
-    scaleY = 1.0;
-    scaleZ = 1.0;
+    modelScale.x = 1.0;
+    modelScale.y = 1.0;
+    modelScale.z = 1.0;
 }
 - (void)setupLookView{
-    eyeX = 0;
-    eyeY = 0;
-    eyeZ = 0;
+    viewEye.x = 0;
+    viewEye.y = 0;
+    viewEye.z = 0;
     
-    tgtX = 0;
-    tgtY = 0;
-    tgtZ = -1;
+    viewTgt.x = 0;
+    viewTgt.y = 0;
+    viewTgt.z = -1;
 }
 - (void)setupLight{
     light.position.x = 0.0;
@@ -516,45 +516,45 @@ const GLubyte groundIndices[] = {
 {
     // Generate a model view matrix to rotate/translate/scale
     //
-    ksMatrixLoadIdentity(&_modelViewMatrix);
+    ksMatrixLoadIdentity(&_modelMatrix);
     
     // Translate away from the viewer
     
-    ksMatrixTranslate(&_modelViewMatrix, _posX, _posY, _posZ);
+    ksMatrixTranslate(&_modelMatrix, modelPos.x, modelPos.y, modelPos.z);
     
     // Rotate the triangle
     //
-    ksMatrixRotate(&_modelViewMatrix, _angle, _rotateX, _rotateY, _rotateZ);
+    ksMatrixRotate(&_modelMatrix, _angle, modleRotate.x, modleRotate.y, modleRotate.z);
     
     // Scale
     
-    ksMatrixScale(&_modelViewMatrix, scaleX, scaleY, scaleZ);
+    ksMatrixScale(&_modelMatrix, modelScale.x, modelScale.y, modelScale.z);
     
     // Load the model-view matrix(传送数据)
-    glUniformMatrix4fv(_modelViewSlot, 1, GL_FALSE, (GLfloat*)&_modelViewMatrix.m[0][0]);
+    glUniformMatrix4fv(_modelSlot, 1, GL_FALSE, (GLfloat*)&_modelMatrix.m[0][0]);
 }
 - (void)updateView{
     // Generate a view matrix
     //
     ksMatrixLoadIdentity(&_lookViewMatrix);
-    ksVec3 eye;
-    eye.x = eyeX;
-    eye.y = eyeY;
-    eye.z = eyeZ;
-    ksVec3 target;
-    target.x = tgtX;
-    target.y = tgtY;
-    target.z = tgtZ;
+//    ksVec3 eye;
+//    eye.x = viewEye.x;
+//    eye.y = viewEye.y;
+//    eye.z = viewEye.z;
+//    ksVec3 target;
+//    target.x = viewTgt.x;
+//    target.y = viewTgt.y;
+//    target.z = viewTgt.z;
     ksVec3 up;
     up.x = 0;
     up.y = 1;
     up.z = 0;
     //视角，长宽比，近平面距离，远平面距离
-    ksLookAt(&_lookViewMatrix, &eye, &target, &up);
+    ksLookAt(&_lookViewMatrix, &viewEye, &viewTgt, &up);
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
     //load eye position uniform
-    glUniform3f(_eyePosSlot, eyeX, eyeY, eyeZ);
+    glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
 
 - (void) updateLight{
@@ -591,6 +591,7 @@ const GLubyte groundIndices[] = {
     light.position.x = 0.0f;
     light.position.y = 0.0f;
     light.position.z = -25.0f;
+    
     light.direction.x = 0.0f;
     light.direction.y = 0.0f;
     light.direction.z = -1.0f;
@@ -620,9 +621,9 @@ const GLubyte groundIndices[] = {
     
     
     //look at the same spot
-    tgtX = 0;
-    tgtY = 0;
-    tgtZ = -30;
+    viewTgt.x = 0;
+    viewTgt.y = 0;
+    viewTgt.z = -30;
     [self updateView];
     [self updateProjection];
 }
@@ -635,24 +636,25 @@ const GLubyte groundIndices[] = {
     glEnable(GL_DEPTH_TEST);
     //set view parameters
     static float viewRotateAngle = 0.57*E_PI;
-    float viewRotateRad = 5;
-    eyeX = viewRotateRad*cosf(viewRotateAngle);
-    eyeY = 0.0;
-    eyeZ = viewRotateRad*sinf(viewRotateAngle)-30;
+    float viewRotateRad = 8;
+    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
+    viewEye.y = 0.0;
+    viewEye.z = viewRotateRad*sinf(viewRotateAngle)-30;
     viewRotateAngle += 0.01;
 //////////    static eye pos
-//    eyeX = 0.0f;
-//    eyeY = 0.0f;
-//    eyeZ = -10.0f;
+//    viewEye.x = 0.0f;
+//    viewEye.y = 0.0f;
+//    viewEye.z = -10.0f;
     //look at targets
     
     [self updateView];
-    light.position.x = eyeX;
-    light.position.y = eyeY;
-    light.position.z = eyeZ;
-    light.direction.x = tgtX - eyeX;
-    light.direction.y = tgtY - eyeY;
-    light.direction.z = tgtZ  -eyeZ;
+//    light.position.x = viewEye.x;
+//    light.position.y = viewEye.y;
+//    light.position.z = viewEye.z;
+    light.position = viewEye;
+    light.direction.x = viewTgt.x - viewEye.x;
+    light.direction.y = viewTgt.y - viewEye.y;
+    light.direction.z = viewTgt.z - viewEye.z;
     glUniform3f(_lightPositionSlot, light.position.x, light.position.y, light.position.z);
     glUniform3f(_lightDircSlot, light.direction.x, light.direction.y, light.direction.z);
     
@@ -681,15 +683,15 @@ const GLubyte groundIndices[] = {
 //    //ground
 //    //using  texture
 //    glUniform1i(_textureUniform, 0);
-//    _posX = 0;
-//    _posY = -3;
-//    _posZ = -30;
-//    scaleX = 15;
-//    scaleY = 0;
-//    scaleZ = 15;
-//    _rotateX = 0;
-//    _rotateY = 0;
-//    _rotateZ = 0;
+//    modelPos.x = 0;
+//    modelPos.y = -3;
+//    modelPos.z = -30;
+//    modelScale.x = 15;
+//    modelScale.y = 0;
+//    modelScale.z = 15;
+//    modleRotate.x = 0;
+//    modleRotate.y = 0;
+//    modleRotate.z = 0;
 //    _angle = 0;
 //    material = ground;
 //
@@ -711,18 +713,18 @@ const GLubyte groundIndices[] = {
     [self updateMaterial]; //all using same material
     for(unsigned int i = 0; i < 10; i++)
     {
-        _posX = cubePositions[i].x;
-        _posY = cubePositions[i].y;
-        _posZ = cubePositions[i].z - 30;
+        modelPos.x = cubePositions[i].x;
+        modelPos.y = cubePositions[i].y;
+        modelPos.z = cubePositions[i].z - 30;
         
-        _rotateX = 1.0f;
-        _rotateY = 0.3f;
-        _rotateZ = 0.5f;
+        modleRotate.x = 1.0f;
+        modleRotate.y = 0.3f;
+        modleRotate.z = 0.5f;
         float angle = 20.0f * i;
         _angle = angle;
-        scaleX = 0.7f;
-        scaleY = 0.7f;
-        scaleZ = 0.7f;
+        modelScale.x = 0.7f;
+        modelScale.y = 0.7f;
+        modelScale.z = 0.7f;
         [self updateTransform];
         //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
         //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
@@ -730,18 +732,19 @@ const GLubyte groundIndices[] = {
     }
     ///////////////////
     //draw the light source
-    //    _posX = -_lightDirc.x;
-    //    _posY = -_lightDirc.y;
-    //    _posZ = -_lightDirc.z;
-    _posX = light.position.x;
-    _posY = light.position.y;
-    _posZ = light.position.z;
-    scaleX = 0.1;
-    scaleY = 0.1;
-    scaleZ = 0.1;
-    _rotateX = 0;
-    _rotateY = 0;
-    _rotateZ = 0;
+    //    modelPos.x = -_lightDirc.x;
+    //    modelPos.y = -_lightDirc.y;
+    //    modelPos.z = -_lightDirc.z;
+//    modelPos.x = light.position.x;
+//    modelPos.y = light.position.y;
+//    modelPos.z = light.position.z;
+    modelPos = light.position;
+    modelScale.x = 0.1;
+    modelScale.y = 0.1;
+    modelScale.z = 0.1;
+    modleRotate.x = 0;
+    modleRotate.y = 0;
+    modleRotate.z = 0;
     _angle = 0;
     [self updateTransform];
     
@@ -756,20 +759,20 @@ const GLubyte groundIndices[] = {
     
     //cube A
 
-    _posX = 0.0;
-    _posY = 4.0;
-    _posZ = -25.0;
+    modelPos.x = 0.0;
+    modelPos.y = 4.0;
+    modelPos.z = -25.0;
     
-    _rotateX = 1.0;
-    _rotateY = 1.0;
-    _rotateZ = 1.0;
+    modleRotate.x = 1.0;
+    modleRotate.y = 1.0;
+    modleRotate.z = 1.0;
     static GLfloat angleA = 0;
 //    angleA += 2;
     _angle = angleA;
     
-    scaleX = 1.0f;
-    scaleY = 1.0f;
-    scaleZ = 1.0f;
+    modelScale.x = 1.0f;
+    modelScale.y = 1.0f;
+    modelScale.z = 1.0f;
     [self updateTransform];
     
 //    material = metal;
@@ -784,20 +787,20 @@ const GLubyte groundIndices[] = {
 //    glActiveTexture(GL_TEXTURE0);
 //    glBindTexture(GL_TEXTURE_2D, _woodTexture);
 //    glUniform1i(_textureUniform, 0);
-    _posX = -5.0;
-    _posY = 1.5;
-    _posZ = -30.0;
+    modelPos.x = -5.0;
+    modelPos.y = 1.5;
+    modelPos.z = -30.0;
     
-//    _rotateX = 1.0;
-//    _rotateY = -1.0;
-//    _rotateZ = 1.0;
+//    modleRotate.x = 1.0;
+//    modleRotate.y = -1.0;
+//    modleRotate.z = 1.0;
 //    static GLfloat angleB = 0;
 //    angleB += 0.3;
 //    _angle = angleB;
 //
-    scaleX = 1.0f;
-    scaleY = 1.0f;
-    scaleZ = 1.0f;
+    modelScale.x = 1.0f;
+    modelScale.y = 1.0f;
+    modelScale.z = 1.0f;
     
 // material doesnt change here, dont have to update paras
 //    material = metal;
@@ -815,20 +818,20 @@ const GLubyte groundIndices[] = {
 //    glBindTexture(GL_TEXTURE_2D, _woodTexture);
 //    glUniform1i(_textureUniform, 0);
     
-    _posX = 5.0;
-    _posY = 2.0;
-    _posZ = -30.0;
+    modelPos.x = 5.0;
+    modelPos.y = 2.0;
+    modelPos.z = -30.0;
     
-    _rotateX = -1.0;
-    _rotateY = 1.0;
-    _rotateZ = 1.0;
+    modleRotate.x = -1.0;
+    modleRotate.y = 1.0;
+    modleRotate.z = 1.0;
     static GLfloat angleC = 0;
 //    angleC += 2;
     _angle = angleC;
     
-    scaleX = 1;
-    scaleY = 1;
-    scaleZ = 1;
+    modelScale.x = 1;
+    modelScale.y = 1;
+    modelScale.z = 1;
     
 //    material = metal;
     
