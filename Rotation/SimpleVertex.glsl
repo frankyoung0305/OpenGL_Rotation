@@ -6,7 +6,6 @@ in vec2 TexCoordIn;
 in vec3 normal;
 
 out vec2 TexCoordOut;
-out vec4 DestinationColor;
 out vec3 fragNormal;
 out vec3 worldPos;
 
@@ -20,6 +19,5 @@ void main()
     gl_Position =   projection * lookView * model * vec4(Position, 1.0);
     
     worldPos = vec3(model * vec4(Position, 1.0));
-    DestinationColor = SourceColor;
     TexCoordOut = TexCoordIn;
 }

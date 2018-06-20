@@ -29,7 +29,28 @@ typedef struct {
     float quadratic;
     float cutOff;
     float outerCutOff;
-} Light;
+} SpotLight;
+
+//dir light
+typedef struct {
+    ksVec3 direction;
+    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+} DirLight;
+//point light
+typedef struct {
+    ksVec3 position;
+    
+    float constant;
+    float linear;
+    float quadratic;
+    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+} PointLight;
 
 @interface GLView : UIView
 {
@@ -74,17 +95,54 @@ typedef struct {
     GLint _diffuseMapSlot;  //lighting map
     GLint _specularMapSlot;
     GLint _shininessSlot;
+    //spotlight
+    GLuint _spotLightPositionSlot;
+    GLuint _spotLightDircSlot;
+    GLuint _spotLightConstantSlot;
+    GLuint _spotLightLinearSlot;
+    GLuint _spotLightQuadraticSlot;
+    GLuint _spotLightAmbientSlot;
+    GLuint _spotLightDiffuseSlot;
+    GLuint _spotLightSpecularSlot;
+    GLuint _spotLightCutOffSlot;
+    GLuint _spotLightOuterCutOffSlot;
+    //directional light
+    GLuint _dirLightDircSlot;
+    GLuint _dirLightAmbntSlot;
+    GLuint _dirLightDifsSlot;
+    GLuint _dirLightSpclSlot;
+    //point light
+    GLuint _pointLightPosSlot0;
+    GLuint _pointLightAmbntSlot0;
+    GLuint _pointLightDifsSlot0;
+    GLuint _pointLightSpclSlot0;
+    GLuint _pointLightConstSlot0;
+    GLuint _pointLightLinearSlot0;
+    GLuint _pointLightQuadSlot0;
     
-    GLuint _lightPositionSlot;
-    GLuint _lightDircSlot;
-    GLuint _lightConstantSlot;
-    GLuint _lightLinearSlot;
-    GLuint _lightQuadraticSlot;
-    GLint _lightAmbientSlot;  //light
-    GLint _lightDiffuseSlot;
-    GLint _lightSpecularSlot;
-    GLuint _lightCutOffSlot;
-    GLuint _lightOuterCutOffSlot;
+    GLuint _pointLightPosSlot1;
+    GLuint _pointLightAmbntSlot1;
+    GLuint _pointLightDifsSlot1;
+    GLuint _pointLightSpclSlot1;
+    GLuint _pointLightConstSlot1;
+    GLuint _pointLightLinearSlot1;
+    GLuint _pointLightQuadSlot1;
+    
+    GLuint _pointLightPosSlot2;
+    GLuint _pointLightAmbntSlot2;
+    GLuint _pointLightDifsSlot2;
+    GLuint _pointLightSpclSlot2;
+    GLuint _pointLightConstSlot2;
+    GLuint _pointLightLinearSlot2;
+    GLuint _pointLightQuadSlot2;
+    
+    GLuint _pointLightPosSlot3;
+    GLuint _pointLightAmbntSlot3;
+    GLuint _pointLightDifsSlot3;
+    GLuint _pointLightSpclSlot3;
+    GLuint _pointLightConstSlot3;
+    GLuint _pointLightLinearSlot3;
+    GLuint _pointLightQuadSlot3;
     
     GLuint _programHandle; //program be used to render, may have many programs.
     
@@ -131,8 +189,10 @@ typedef struct {
     Material metal;
     Material wood;
     Material ground;
-    
-    Light light;
+//lighting
+    SpotLight spotLight;
+    DirLight dirLight;
+    PointLight pointLight;
 }
 
 + (Class)layerClass; //overwrite func layerClass
