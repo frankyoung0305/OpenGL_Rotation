@@ -77,6 +77,7 @@ typedef struct {
     //VAOs are here
     GLuint _objectA;
     GLuint _groundObj;
+    GLuint _lampObj;
     
     // every object could use these slots
     GLuint _positionSlot;
@@ -143,12 +144,26 @@ typedef struct {
     GLuint _pointLightConstSlot3;
     GLuint _pointLightLinearSlot3;
     GLuint _pointLightQuadSlot3;
+    ///////////slots for lamps
+    GLuint _lampTexCoordSlot;
+    GLuint _lampPositionSlot;
+    GLuint _lampColorSlot;
+    GLuint _lampNormalSlot;
     
+    GLint _lampModelSlot;
+    GLint _lampLookViewSlot;
+    GLint _lampProjectionSlot;
+    ///////////////
     GLuint _programHandle; //program be used to render, may have many programs.
+    GLuint _lampProgram;
     
     ksMatrix4 _modelMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
+    
+    ksMatrix4 _lampModelMatrix;  //for lamp
+    ksMatrix4 _lampProjectionMatrix;
+    ksMatrix4 _lampLookViewMatrix;
 //    ksVec3 _lightDirc;
 
     
@@ -168,7 +183,7 @@ typedef struct {
 //    float _rotateY;
 //    float _rotateZ;
     float _angle;
-    ksVec3 modleRotate;
+    ksVec3 modelRotate;
     
 //    float scaleX;
 //    float scaleY;
@@ -228,6 +243,8 @@ typedef struct {
 - (void)updateProjection;
 - (void)updateLight;
 - (void)updateMaterial;
+
+- (void)updateLampTransform;
 
 //update vals that don't change while rendering
 - (void)inintScene;

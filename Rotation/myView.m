@@ -206,12 +206,22 @@ const GLubyte groundIndices[] = {
                                      withType:GL_VERTEX_SHADER];
     GLuint fragmentShader = [self compileShader:@"SimpleFragment"
                                        withType:GL_FRAGMENT_SHADER];
+    // compile lamp shader program
+    GLuint lampvertexShader = [self compileShader:@"lampVertex"
+                                     withType:GL_VERTEX_SHADER];
+    GLuint lampfragmentShader = [self compileShader:@"lampFragment"
+                                       withType:GL_FRAGMENT_SHADER];
     
     // 调用接下来的func来创建和将shader们连接到program。当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，会得到一个链接错误
     _programHandle = glCreateProgram();
     glAttachShader(_programHandle, vertexShader);
     glAttachShader(_programHandle, fragmentShader);
     glLinkProgram(_programHandle);
+    //link lamp program
+    _lampProgram = glCreateProgram();
+    glAttachShader(_lampProgram, lampvertexShader);
+    glAttachShader(_lampProgram, lampfragmentShader);
+    glLinkProgram(_lampProgram);
     
     // check
     GLint linkSuccess;
@@ -220,19 +230,30 @@ const GLubyte groundIndices[] = {
         GLchar messages[256];
         glGetProgramInfoLog(_programHandle, sizeof(messages), 0, &messages[0]);
         NSString *messageString = [NSString stringWithUTF8String:messages];
-        NSLog(@"%@", messageString);
+        NSLog(@"lighting program fail: %@", messageString);
         exit(1);
     }
-    
-    // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
-    // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
-    glUseProgram(_programHandle);
+    GLint lampLinkSuccess;
+    glGetProgramiv(_lampProgram, GL_LINK_STATUS, &lampLinkSuccess);
+    if (lampLinkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(_lampProgram, sizeof(messages), 0, &messages[0]);
+        NSString *messageString = [NSString stringWithUTF8String:messages];
+        NSLog(@"lamp program fail: %@", messageString);
+        exit(1);
+    }
     
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
     _normalSlot = glGetAttribLocation(_programHandle, "normal");
     
+    ////lamp attribs
+    _lampPositionSlot = glGetAttribLocation(_lampProgram, "Position");
+    _lampColorSlot = glGetAttribLocation(_lampProgram, "SourceColor");
+    _lampNormalSlot = glGetAttribLocation(_lampProgram, "normal");
+    _lampTexCoordSlot = glGetAttribLocation(_lampProgram, "TexCoordIn");
+
     //texture
     _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
@@ -243,7 +264,11 @@ const GLubyte groundIndices[] = {
     _projectionSlot = glGetUniformLocation(_programHandle, "projection");
     // Get the uniform view matrix slot from program
     _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
-//    _lightDrcSlot = glGetUniformLocation(_programHandle, "lightDirection");
+    ///////////////////////////mvp mat slot setup for lamp
+    _lampModelSlot = glGetUniformLocation(_lampProgram, "model");
+    _lampProjectionSlot = glGetUniformLocation(_lampProgram, "projection");
+    _lampLookViewSlot = glGetUniformLocation(_lampProgram, "lookView");
+    ////////////////////////////////
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
     
     _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
@@ -316,9 +341,9 @@ const GLubyte groundIndices[] = {
     modelPos.y = 0.0;
     modelPos.z = 0.0;
     
-    modleRotate.x = 0.0;
-    modleRotate.y = 0.0;
-    modleRotate.z = 0.0;
+    modelRotate.x = 0.0;
+    modelRotate.y = 0.0;
+    modelRotate.z = 0.0;
     _angle = 0.0;
     
     modelScale.x = 1.0;
@@ -458,8 +483,8 @@ const GLubyte groundIndices[] = {
 //setup a VAO
 - (void)setupVAO{
     //gen and bind VAO as current object.
-    glGenVertexArrays(1, &self->_objectA);
-    glBindVertexArray(self->_objectA);
+    glGenVertexArrays(1, &_objectA);
+    glBindVertexArray(_objectA);
     
     // bind VBOs for current object
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -508,6 +533,28 @@ const GLubyte groundIndices[] = {
     
     glBindVertexArray(0);
     
+    ///lamp
+
+    glGenVertexArrays(1, &_lampObj);
+    glBindVertexArray(_lampObj);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    
+    glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), 0);
+    glVertexAttribPointer(_lampColorSlot, 4, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
+    glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE,
+                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
+    glVertexAttribPointer(_lampNormalSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(sizeof(float)*7));
+    
+    glEnableVertexAttribArray(_lampPositionSlot);
+    glEnableVertexAttribArray(_lampColorSlot);
+    glEnableVertexAttribArray(_lampTexCoordSlot);
+    glEnableVertexAttribArray(_lampNormalSlot);
+    
+    glBindVertexArray(0);
 }
 
 - (void)setup {
@@ -566,26 +613,31 @@ const GLubyte groundIndices[] = {
     // Load projection matrix(传送数据)
     glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
 }
+- (void)updateLampProjection{
+    //lamp use same projection mat
+    glUniformMatrix4fv(_lampProjectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+}
 - (void)updateTransform
 {
     // Generate a model view matrix to rotate/translate/scale
     //
     ksMatrixLoadIdentity(&_modelMatrix);
-    
     // Translate away from the viewer
-    
     ksMatrixTranslate(&_modelMatrix, modelPos.x, modelPos.y, modelPos.z);
-    
     // Rotate the triangle
     //
-    ksMatrixRotate(&_modelMatrix, _angle, modleRotate.x, modleRotate.y, modleRotate.z);
-    
+    ksMatrixRotate(&_modelMatrix, _angle, modelRotate.x, modelRotate.y, modelRotate.z);
     // Scale
-    
     ksMatrixScale(&_modelMatrix, modelScale.x, modelScale.y, modelScale.z);
-    
     // Load the model-view matrix(传送数据)
     glUniformMatrix4fv(_modelSlot, 1, GL_FALSE, (GLfloat*)&_modelMatrix.m[0][0]);
+}
+- (void)updateLampTransform{
+    ksMatrixLoadIdentity(&_lampModelMatrix);
+    ksMatrixTranslate(&_lampModelMatrix, modelPos.x, modelPos.y, modelPos.z);
+    ksMatrixRotate(&_lampModelMatrix, _angle, modelRotate.x, modelRotate.y, modelRotate.z);
+    ksMatrixScale(&_lampModelMatrix, modelScale.x, modelScale.y, modelScale.z);
+    glUniformMatrix4fv(_lampModelSlot, 1, GL_FALSE, (GLfloat*)&_lampModelMatrix.m[0][0]);
 }
 - (void)updateView{
     // Generate a view matrix
@@ -610,7 +662,9 @@ const GLubyte groundIndices[] = {
     //load eye position uniform
     glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
-
+- (void)updateLampView{
+    glUniformMatrix4fv(_lampLookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+}
 - (void) updateLight{
     //update directional light para
     glUniform3f(_dirLightDircSlot, dirLight.direction.x, dirLight.direction.y, dirLight.direction.z);
@@ -676,7 +730,8 @@ const GLubyte groundIndices[] = {
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
-
+    //setup lighting program first
+    glUseProgram(_programHandle);
     //static light spot
     //set light source position
     spotLight.position.x = 0.0f;
@@ -718,6 +773,11 @@ const GLubyte groundIndices[] = {
     viewTgt.z = 0;
     [self updateView];
     [self updateProjection];// 更新投影矩阵
+
+    //then setup lamp program
+    glUseProgram(_lampProgram);
+    [self updateLampProjection];
+    [self updateLampView];
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -727,7 +787,11 @@ const GLubyte groundIndices[] = {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     
     glEnable(GL_DEPTH_TEST);
-    
+    // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
+    // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
+    //use lighting program to render cubes
+    glUseProgram(_programHandle);
+ 
     //set view parameters
     static float viewRotateAngle = 0.57 * E_PI;
     float viewRotateRad = 8.0;
@@ -758,9 +822,9 @@ const GLubyte groundIndices[] = {
     {
         modelPos = cubePositions[i];
         
-        modleRotate.x = 1.0f;
-        modleRotate.y = 0.3f;
-        modleRotate.z = 0.5f;
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
         float angle = 20.0f * i;
         _angle = angle;
         modelScale.x = 0.7f;
@@ -771,13 +835,22 @@ const GLubyte groundIndices[] = {
         //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
+    glBindVertexArray(0);//unbind vao
+
+    //then use lamp program to render lamps
+    glUseProgram(_lampProgram);
+    glBindVertexArray(_lampObj);
+    [self updateLampView];
     for(unsigned int j = 0; j < 4; j++){
         modelPos = pointLightPositions[j];
         _angle = 0;
         modelScale.x = 0.1;
         modelScale.y = 0.1;
         modelScale.z = 0.1;
-        [self updateTransform];
+        modelRotate.x = 0.0;
+        modelRotate.y = 1.0;
+        modelRotate.z = 0.0;
+        [self updateLampTransform];
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
