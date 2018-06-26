@@ -720,7 +720,11 @@ const GLubyte groundIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
+    glEnable(GL_STENCIL_TEST); //开启模版测试
+
     glEnable(GL_DEPTH_TEST);//开启深度测试
+//    glDepthFunc(GL_NOTEQUAL);  //默认是less
+
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -779,7 +783,7 @@ const GLubyte groundIndices[] = {
 - (void)render {  //render func for shader
 
     glClearColor(0.05, 0.05, 0.05, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
 
     
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
