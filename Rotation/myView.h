@@ -145,11 +145,8 @@ typedef struct {
     GLuint _pointLightLinearSlot3;
     GLuint _pointLightQuadSlot3;
     ///////////slots for lamps
-    GLuint _lampTexCoordSlot;
     GLuint _lampPositionSlot;
-    GLuint _lampColorSlot;
-    GLuint _lampNormalSlot;
-    
+
     GLint _lampModelSlot;
     GLint _lampLookViewSlot;
     GLint _lampProjectionSlot;

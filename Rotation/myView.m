@@ -129,18 +129,21 @@ const GLubyte groundIndices[] = {
 }
 
 - (void)setupRenderBuffer {
-    // 生成 renderbuffer ( renderbuffer = 用于展示的窗口 )
+    // 生成 renderbuffer ( renderbuffer->framebuffer-> 用于展示的窗口 )
     glGenRenderbuffers(1, &_colorrenderbuffer);
     // 绑定 renderbuffer
     glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
     // GL_RENDERBUFFER 的内容存储到实现 EAGLDrawable 协议的 CAEAGLLayer
     [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
+    
+
 }
 
 - (void)setupDepthBuffer {
     glGenRenderbuffers(1, &_depthRenderBuffer);
     glBindRenderbuffer(GL_RENDERBUFFER, _depthRenderBuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self.frame.size.width, self.frame.size.height);
+
 }
 
 - (void)setupFrameBuffer {
@@ -250,10 +253,7 @@ const GLubyte groundIndices[] = {
     
     ////lamp attribs
     _lampPositionSlot = glGetAttribLocation(_lampProgram, "Position");
-    _lampColorSlot = glGetAttribLocation(_lampProgram, "SourceColor");
-    _lampNormalSlot = glGetAttribLocation(_lampProgram, "normal");
-    _lampTexCoordSlot = glGetAttribLocation(_lampProgram, "TexCoordIn");
-
+    
     //texture
     _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
     _textureUniform = glGetUniformLocation(_programHandle, "Texture");
@@ -368,26 +368,26 @@ const GLubyte groundIndices[] = {
     dirLight.direction.x = -0.2;
     dirLight.direction.y = -1.0;
     dirLight.direction.z = -0.3;
-    dirLight.ambient.x = 0.2;
-    dirLight.ambient.y = 0.2;
-    dirLight.ambient.z = 0.2;
-    dirLight.diffuse.x = 0.5;
-    dirLight.diffuse.y = 0.5;
-    dirLight.diffuse.z = 0.5;
-    dirLight.specular.x = 1.0;
-    dirLight.specular.y = 1.0;
-    dirLight.specular.z = 1.0;
+    dirLight.ambient.x = 0.1;
+    dirLight.ambient.y = 0.1;
+    dirLight.ambient.z = 0.1;
+    dirLight.diffuse.x = 0.3;
+    dirLight.diffuse.y = 0.3;
+    dirLight.diffuse.z = 0.3;
+    dirLight.specular.x = 0.7;
+    dirLight.specular.y = 0.7;
+    dirLight.specular.z = 0.7;
     
     //paras for all point lights (except for pos)
     pointLight.ambient.x = 0.05f;
     pointLight.ambient.y = 0.05f;
     pointLight.ambient.z = 0.05f;
-    pointLight.diffuse.x = 0.8f;
-    pointLight.diffuse.y = 0.8f;
-    pointLight.diffuse.z = 0.8f;
-    pointLight.specular.x = 1.0f;
-    pointLight.specular.y = 1.0f;
-    pointLight.specular.z = 1.0f;
+    pointLight.diffuse.x = 0.5f;
+    pointLight.diffuse.y = 0.5f;
+    pointLight.diffuse.z = 0.5f;
+    pointLight.specular.x = 0.8f;
+    pointLight.specular.y = 0.8f;
+    pointLight.specular.z = 0.8f;
     pointLight.constant = 1.0f;
     pointLight.linear = 0.09;
     pointLight.quadratic = 0.032;
@@ -543,17 +543,9 @@ const GLubyte groundIndices[] = {
     
     glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE,
                           sizeof(Vertex), 0);
-    glVertexAttribPointer(_lampColorSlot, 4, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 3));
-    glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
-    glVertexAttribPointer(_lampNormalSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*)(sizeof(float)*7));
-    
+
     glEnableVertexAttribArray(_lampPositionSlot);
-    glEnableVertexAttribArray(_lampColorSlot);
-    glEnableVertexAttribArray(_lampTexCoordSlot);
-    glEnableVertexAttribArray(_lampNormalSlot);
-    
+
     glBindVertexArray(0);
 }
 
@@ -608,6 +600,7 @@ const GLubyte groundIndices[] = {
     ksMatrixLoadIdentity(&_projectionMatrix);
     
     //视角，长宽比，近平面距离，远平面距离
+//    ksOrtho(&_projectionMatrix, -5 * _aspect, 5 * _aspect, -5, 5, 1.0, 50.0);
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
     
     // Load projection matrix(传送数据)
@@ -727,6 +720,7 @@ const GLubyte groundIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
+    glEnable(GL_DEPTH_TEST);//开启深度测试
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -783,10 +777,11 @@ const GLubyte groundIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
+
     glClearColor(0.05, 0.05, 0.05, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
     
-    glEnable(GL_DEPTH_TEST);
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
     // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
     //use lighting program to render cubes
