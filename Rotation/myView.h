@@ -59,7 +59,7 @@ typedef struct {
     EAGLContext *_context;
     GLuint _framebuffer;
     GLuint _colorrenderbuffer;
-    GLuint _depthRenderBuffer;
+    GLuint _depthStencilRenderBuffer;
     
     GLuint vertexBuffer;
     GLuint indexBuffer;
@@ -214,7 +214,7 @@ typedef struct {
 - (void)setupContext;
 
 - (void)setupRenderBuffer;
-- (void)setupDepthBuffer;
+- (void)setupDepthStencilBuffer;
 - (void)setupFrameBuffer;
 - (void)destoryRenderAndFrameBuffer;
 

@@ -18,7 +18,7 @@
 
 ksVec3 cubePositions[] = {
     { 0.0f,  0.0f,  0.0f },
-    { 2.0f,  5.0f, -15.0f},
+    { 2.0f,  2.0f, -2.0f},
     {-1.5f, -2.2f, -2.5f },
     {-3.8f, -2.0f, -12.3f},
     { 2.4f, -0.4f, -3.5f },
@@ -139,21 +139,24 @@ const GLubyte groundIndices[] = {
 
 }
 
-- (void)setupDepthBuffer {
-    glGenRenderbuffers(1, &_depthRenderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, _depthRenderBuffer);
-    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT16, self.frame.size.width, self.frame.size.height);
-
+- (void)setupDepthStencilBuffer {
+    glGenRenderbuffers(1, &_depthStencilRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _depthStencilRenderBuffer);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
+//use one buffer to restore depth and stencil data
 }
+
 
 - (void)setupFrameBuffer {
     glGenFramebuffers(1, &_framebuffer);
     // 设置为当前 framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     // 将 _colorRenderBuffer 装配到 GL_COLOR_ATTACHMENT0 这个装配点上
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
-                              GL_RENDERBUFFER, _colorrenderbuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthRenderBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER, _colorrenderbuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
+
+
 }
 - (void)destoryRenderAndFrameBuffer
 {
@@ -555,10 +558,12 @@ const GLubyte groundIndices[] = {
     
     [self destoryRenderAndFrameBuffer];
     
-    [self setupDepthBuffer];
+    [self setupDepthStencilBuffer];
     [self setupRenderBuffer];
-    [self setupFrameBuffer];
     
+    [self setupFrameBuffer];
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    NSLog(@"%d \n", status);
     [self compileShaders];
     
     [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
@@ -720,8 +725,7 @@ const GLubyte groundIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-    glEnable(GL_STENCIL_TEST); //开启模版测试
-
+    glEnable(GL_STENCIL_TEST);//开启模版测试
     glEnable(GL_DEPTH_TEST);//开启深度测试
 //    glDepthFunc(GL_NOTEQUAL);  //默认是less
 
@@ -781,11 +785,16 @@ const GLubyte groundIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
-
-    glClearColor(0.05, 0.05, 0.05, 1.0);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);
+    glEnable(GL_DEPTH_TEST);
+    glStencilOp(GL_ZERO, GL_KEEP, GL_REPLACE);
 
     
+    glClearColor(0.05, 0.05, 0.05, 1.0);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
+
+    glStencilFunc(GL_ALWAYS, 1, 0xFF);//通过测试后更新stencilbuffer为0
+    glStencilMask(0xFF);//允许写入
+
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
     // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
     //use lighting program to render cubes
@@ -817,7 +826,7 @@ const GLubyte groundIndices[] = {
     //    glUniform1i(_textureUniform, 0);
     material = wood;
     [self updateMaterial]; //all cubes using same material
-    for(unsigned int i = 0; i < 10; i++)
+    for(unsigned int i = 0; i < 2; i++)
     {
         modelPos = cubePositions[i];
         
@@ -835,24 +844,48 @@ const GLubyte groundIndices[] = {
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
-
-    //then use lamp program to render lamps
-    glUseProgram(_lampProgram);
-    glBindVertexArray(_lampObj);
+//
+//    //then use lamp program to render lamps
+//    glUseProgram(_lampProgram);
+//    glBindVertexArray(_lampObj);
+//    [self updateLampView];
+//    for(unsigned int j = 0; j < 4; j++){
+//        modelPos = pointLightPositions[j];
+//        _angle = 0;
+//        modelScale.x = 0.1;
+//        modelScale.y = 0.1;
+//        modelScale.z = 0.1;
+//        modelRotate.x = 0.0;
+//        modelRotate.y = 1.0;
+//        modelRotate.z = 0.0;
+//        [self updateLampTransform];
+//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    }
+//    glBindVertexArray(0);//unbind vao
+//
+////    ///////stencil test
+    glStencilFunc(GL_NOTEQUAL, 1, 0xFF);//画大一点的方块
+    glStencilMask(0x00);//不写入
+    glDisable(GL_DEPTH_TEST);
+    glUseProgram(_lampProgram);//use stencil program
+    glBindVertexArray(_lampObj);//use stencil obj
     [self updateLampView];
-    for(unsigned int j = 0; j < 4; j++){
-        modelPos = pointLightPositions[j];
-        _angle = 0;
-        modelScale.x = 0.1;
-        modelScale.y = 0.1;
-        modelScale.z = 0.1;
-        modelRotate.x = 0.0;
-        modelRotate.y = 1.0;
-        modelRotate.z = 0.0;
+    for(unsigned int j = 0; j < 2; j++){
+        modelPos = cubePositions[j];
+
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
+        float angle = 20.0f * j;
+        _angle = angle;
+        modelScale.x = 0.8f;
+        modelScale.y = 0.8f;
+        modelScale.z = 0.8f;
         [self updateLampTransform];
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
-    glBindVertexArray(0);//unbind vao
+    glStencilMask(0xFF);
+    glEnable(GL_DEPTH_TEST);
     
     //count fps
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
