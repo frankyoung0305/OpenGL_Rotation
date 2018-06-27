@@ -156,7 +156,10 @@ const GLubyte groundIndices[] = {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
 
-
+    //check frame buffer
+    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE)
+        NSLog(@"frame buffer assembling ERROR: %x \n", status);
 }
 - (void)destoryRenderAndFrameBuffer
 {
@@ -562,8 +565,7 @@ const GLubyte groundIndices[] = {
     [self setupRenderBuffer];
     
     [self setupFrameBuffer];
-    GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    NSLog(@"%d \n", status);
+
     [self compileShaders];
     
     [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
@@ -887,13 +889,13 @@ const GLubyte groundIndices[] = {
     glStencilMask(0xFF);
     glEnable(GL_DEPTH_TEST);
     
-    //count fps
-    UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
-    static UInt64 lasttime;
-    UInt64 timval = recordTime - lasttime;
-    lasttime = recordTime;
-    int fps = (1.0/timval)*1000;
-    NSLog(@"timval:%llums; FPS:%d", timval,fps);
+//    //count fps
+//    UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
+//    static UInt64 lasttime;
+//    UInt64 timval = recordTime - lasttime;
+//    lasttime = recordTime;
+//    int fps = (1.0/timval)*1000;
+//    NSLog(@"timval:%llums; FPS:%d", timval,fps);
     
     [_context presentRenderbuffer:GL_RENDERBUFFER];
 }
