@@ -11,6 +11,10 @@
 #import <UIKit/UIKit.h>
 #import "myView.h"
 
+#include <assimp/Importer.hpp>
+#include <assimp/scene.h>
+#include <assimp/postprocess.h>
+
 #define TEX_COORD_MAX   1
 #define GRD_TEX_COORD_MAX   5
 

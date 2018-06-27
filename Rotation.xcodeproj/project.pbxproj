@@ -13,6 +13,7 @@
 		3C308B2820D24C60007E65DF /* ground.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2720D24C5F007E65DF /* ground.png */; };
 		3C308B2A20D24E7E007E65DF /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2920D24E7D007E65DF /* wood.png */; };
 		3C308B2C20D3905D007E65DF /* frame.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2B20D3905C007E65DF /* frame.png */; };
+		3C41451220E3714300CC2A1F /* External_Lib in Resources */ = {isa = PBXBuildFile; fileRef = 3C41451120E3714300CC2A1F /* External_Lib */; };
 		3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */; };
 		3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */; };
 		3C9373FC20C41E3D00A48C10 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C9373FB20C41E3D00A48C10 /* AppDelegate.m */; };
@@ -23,7 +24,7 @@
 		3C93740A20C41E3E00A48C10 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C93740920C41E3E00A48C10 /* main.m */; };
 		3C93741420C41E3E00A48C10 /* RotationTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C93741320C41E3E00A48C10 /* RotationTests.m */; };
 		3C93741F20C41E3E00A48C10 /* RotationUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C93741E20C41E3E00A48C10 /* RotationUITests.m */; };
-		3C93743B20C5082A00A48C10 /* myView.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C93743A20C5082A00A48C10 /* myView.m */; };
+		3C93743B20C5082A00A48C10 /* myView.mm in Sources */ = {isa = PBXBuildFile; fileRef = 3C93743A20C5082A00A48C10 /* myView.mm */; };
 		3CA461C520C8039D00B69F81 /* ksMatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C120C8039D00B69F81 /* ksMatrix.c */; };
 		3CA461C620C8039D00B69F81 /* ksVector.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C220C8039D00B69F81 /* ksVector.c */; };
 		3CA65F7320C92C1D00B58A6A /* pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 3CA65F7220C92C1D00B58A6A /* pic.png */; };
@@ -53,6 +54,7 @@
 		3C308B2720D24C5F007E65DF /* ground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ground.png; sourceTree = "<group>"; };
 		3C308B2920D24E7D007E65DF /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wood.png; sourceTree = "<group>"; };
 		3C308B2B20D3905C007E65DF /* frame.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = frame.png; sourceTree = "<group>"; };
+		3C41451120E3714300CC2A1F /* External_Lib */ = {isa = PBXFileReference; lastKnownFileType = folder; path = External_Lib; sourceTree = "<group>"; };
 		3C5FBEBC20C54767002CB0B7 /* myView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = myView.h; sourceTree = "<group>"; };
 		3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
 		3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
@@ -72,7 +74,7 @@
 		3C93741A20C41E3E00A48C10 /* RotationUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = RotationUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		3C93741E20C41E3E00A48C10 /* RotationUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = RotationUITests.m; sourceTree = "<group>"; };
 		3C93742020C41E3E00A48C10 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		3C93743A20C5082A00A48C10 /* myView.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = myView.m; sourceTree = "<group>"; };
+		3C93743A20C5082A00A48C10 /* myView.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = myView.mm; sourceTree = "<group>"; };
 		3CA461C120C8039D00B69F81 /* ksMatrix.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ksMatrix.c; sourceTree = "<group>"; };
 		3CA461C220C8039D00B69F81 /* ksVector.c */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.c; path = ksVector.c; sourceTree = "<group>"; };
 		3CA461C320C8039D00B69F81 /* ksVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksVector.h; sourceTree = "<group>"; };
@@ -108,6 +110,7 @@
 		3C9373EE20C41E3D00A48C10 = {
 			isa = PBXGroup;
 			children = (
+				3C41451120E3714300CC2A1F /* External_Lib */,
 				3C9373F920C41E3D00A48C10 /* Rotation */,
 				3C93741220C41E3E00A48C10 /* RotationTests */,
 				3C93741D20C41E3E00A48C10 /* RotationUITests */,
@@ -132,7 +135,7 @@
 				3C308B2920D24E7D007E65DF /* wood.png */,
 				3C308B2720D24C5F007E65DF /* ground.png */,
 				3C308B2520D21945007E65DF /* metal.png */,
-				3C93743A20C5082A00A48C10 /* myView.m */,
+				3C93743A20C5082A00A48C10 /* myView.mm */,
 				3C5FBEBC20C54767002CB0B7 /* myView.h */,
 				3C27268620DB443B00D7B4AD /* lampFragment.glsl */,
 				3C27268820DB479D00D7B4AD /* lampVertex.glsl */,
@@ -282,6 +285,7 @@
 				3C308B2A20D24E7E007E65DF /* wood.png in Resources */,
 				3C308B2C20D3905D007E65DF /* frame.png in Resources */,
 				3C93740720C41E3E00A48C10 /* LaunchScreen.storyboard in Resources */,
+				3C41451220E3714300CC2A1F /* External_Lib in Resources */,
 				3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */,
 				3C308B2820D24C60007E65DF /* ground.png in Resources */,
 				3C93740420C41E3E00A48C10 /* Assets.xcassets in Resources */,
@@ -316,7 +320,7 @@
 				3CA461C620C8039D00B69F81 /* ksVector.c in Sources */,
 				3C9373FF20C41E3D00A48C10 /* ViewController.m in Sources */,
 				3C93740A20C41E3E00A48C10 /* main.m in Sources */,
-				3C93743B20C5082A00A48C10 /* myView.m in Sources */,
+				3C93743B20C5082A00A48C10 /* myView.mm in Sources */,
 				3C9373FC20C41E3D00A48C10 /* AppDelegate.m in Sources */,
 				3CA461C520C8039D00B69F81 /* ksMatrix.c in Sources */,
 			);
@@ -488,11 +492,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = External_Lib/assimp/include;
 				INFOPLIST_FILE = Rotation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = External_Lib/assimp/iOS/x86_64;
 				PRODUCT_BUNDLE_IDENTIFIER = frank.Rotation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -504,11 +510,13 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CODE_SIGN_STYLE = Automatic;
+				HEADER_SEARCH_PATHS = External_Lib/assimp/include;
 				INFOPLIST_FILE = Rotation/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
+				LIBRARY_SEARCH_PATHS = External_Lib/assimp/iOS/x86_64;
 				PRODUCT_BUNDLE_IDENTIFIER = frank.Rotation;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				TARGETED_DEVICE_FAMILY = "1,2";
