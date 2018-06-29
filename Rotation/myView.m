@@ -812,8 +812,8 @@ const GLubyte grassIndices[] = {
     fyVectorGLSLProduct(&spotLight.ambient, &lightColor, &abntIndex);
     fyVectorGLSLProduct(&spotLight.diffuse, &lightColor, &difsIndex);
     
-    spotLight.cutOff = cosf(12.5 / 180.0 * E_PI);
-    spotLight.outerCutOff = cosf(15.5 / 180.0 * E_PI);
+    spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
+    spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
     [self updateLight]; //static light
     
     //look at the same spot
@@ -833,7 +833,7 @@ const GLubyte grassIndices[] = {
 
 - (void)render {  //render func for shader
     
-    glClearColor(0.05, 0.05, 0.05, 1.0);
+    glClearColor(0.07, 0.07, 0.07, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
 
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
