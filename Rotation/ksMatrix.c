@@ -390,45 +390,119 @@ void ksOrtho(ksMatrix4 * result, float left, float right, float bottom, float to
 
 void ksLookAt(ksMatrix4 * result, const ksVec3 * eye, const ksVec3 * target, const ksVec3 * up)
 {
-	ksVec3 side, up2, forward ;
-	//ksVec4 eyePrime;
-	ksMatrix4 transMat;
+//    ksVec3 side, up2, forward ;
+//    //ksVec4 eyePrime;
+//    ksMatrix4 transMat;
+//
+//    ksVectorSubtract(&forward, target, eye);
+//    ksVectorNormalize(&forward);
+//
+//    ksCrossProduct(&side, up, &forward);
+//    ksVectorNormalize(&side );
+//
+//    ksCrossProduct(&up2, &side, &forward);
+//    ksVectorNormalize(&up2);
+//
+//    ksMatrixLoadIdentity(result);
+//    result->m[0][0] = side.x;
+//    result->m[0][1] = side.y;
+//    result->m[0][2] = side.z;
+//    result->m[1][0] = up2.x;
+//    result->m[1][1] = up2.y;
+//    result->m[1][2] = up2.z;
+//    result->m[2][0] = -forward.x;
+//    result->m[2][1] = -forward.y;
+//    result->m[2][2] = -forward.z;
+//
+//    ksMatrixLoadIdentity(&transMat);
+//    ksMatrixTranslate(&transMat, -eye->x, -eye->y, -eye->z);
+//
+//    ksMatrixMultiply(result, result, &transMat);
+//
+//    //eyePrime.x = -eye->x;
+//    //eyePrime.y = -eye->y;
+//    //eyePrime.z = -eye->z;
+//    //eyePrime.w = 1;
+//
+//    //ksMatrixMultiplyVector(&eyePrime, result, &eyePrime);
+//    //ksMatrixTranspose(result, result);
+//
+//    //result->m[3][0] = eyePrime.x;
+//    //result->m[3][1] = eyePrime.y;
+//    //result->m[3][2] = eyePrime.z;
+//    //result->m[3][3] = eyePrime.w;
+    /////////////////////////////////////////
+//    ESMatrix *result,
+//    float posX,    float posY,    float posZ,
+//    float lookAtX, float lookAtY, float lookAtZ,
+//    float upX,     float upY,     float upZ
+    
+    
+    float axisX[3], axisY[3], axisZ[3];
+    float length;
+    
+    // axisZ = lookAt - pos
+    axisZ[0] = target->x - eye->x;
+    axisZ[1] = target->y - eye->y;
+    axisZ[2] = target->z - eye->z;
+    
+    // normalize axisZ
+    length = sqrtf ( axisZ[0] * axisZ[0] + axisZ[1] * axisZ[1] + axisZ[2] * axisZ[2] );
+    
+    if ( length != 0.0f )
+    {
+        axisZ[0] /= length;
+        axisZ[1] /= length;
+        axisZ[2] /= length;
+    }
+    
+    // axisX = up X axisZ
+    axisX[0] = up->y * axisZ[2] - up->z * axisZ[1];
+    axisX[1] = up->z * axisZ[0] - up->x * axisZ[2];
+    axisX[2] = up->x * axisZ[1] - up->y * axisZ[0];
+    
+    // normalize axisX
+    length = sqrtf ( axisX[0] * axisX[0] + axisX[1] * axisX[1] + axisX[2] * axisX[2] );
+    
+    if ( length != 0.0f )
+    {
+        axisX[0] /= length;
+        axisX[1] /= length;
+        axisX[2] /= length;
+    }
+    
+    // axisY = axisZ x axisX
+    axisY[0] = axisZ[1] * axisX[2] - axisZ[2] * axisX[1];
+    axisY[1] = axisZ[2] * axisX[0] - axisZ[0] * axisX[2];
+    axisY[2] = axisZ[0] * axisX[1] - axisZ[1] * axisX[0];
+    
+    // normalize axisY
+    length = sqrtf ( axisY[0] * axisY[0] + axisY[1] * axisY[1] + axisY[2] * axisY[2] );
+    
+    if ( length != 0.0f )
+    {
+        axisY[0] /= length;
+        axisY[1] /= length;
+        axisY[2] /= length;
+    }
+    
+    ksMatrixLoadIdentity(result);
 
-	ksVectorSubtract(&forward, target, eye);
-	ksVectorNormalize(&forward);
-
-	ksCrossProduct(&side, up, &forward);
-	ksVectorNormalize(&side );
-
-	ksCrossProduct(&up2, &side, &forward);
-	ksVectorNormalize(&up2);
-
-	ksMatrixLoadIdentity(result);
-	result->m[0][0] = side.x;
-	result->m[0][1] = side.y;
-	result->m[0][2] = side.z;
-	result->m[1][0] = up2.x;
-	result->m[1][1] = up2.y;
-	result->m[1][2] = up2.z;
-	result->m[2][0] = -forward.x;
-	result->m[2][1] = -forward.y;
-	result->m[2][2] = -forward.z;
-
-	ksMatrixLoadIdentity(&transMat);
-	ksMatrixTranslate(&transMat, -eye->x, -eye->y, -eye->z);
-
-	ksMatrixMultiply(result, result, &transMat);
-
-	//eyePrime.x = -eye->x;
-	//eyePrime.y = -eye->y;
-	//eyePrime.z = -eye->z;
-	//eyePrime.w = 1;
-
-	//ksMatrixMultiplyVector(&eyePrime, result, &eyePrime);
-	//ksMatrixTranspose(result, result);
-
-	//result->m[3][0] = eyePrime.x;
-	//result->m[3][1] = eyePrime.y;
-	//result->m[3][2] = eyePrime.z;
-	//result->m[3][3] = eyePrime.w;
+    result->m[0][0] = -axisX[0];
+    result->m[0][1] =  axisY[0];
+    result->m[0][2] = -axisZ[0];
+    
+    result->m[1][0] = -axisX[1];
+    result->m[1][1] =  axisY[1];
+    result->m[1][2] = -axisZ[1];
+    
+    result->m[2][0] = -axisX[2];
+    result->m[2][1] =  axisY[2];
+    result->m[2][2] = -axisZ[2];
+    
+    // translate (-posX, -posY, -posZ)
+    result->m[3][0] =  axisX[0] * eye->x + axisX[1] * eye->y + axisX[2] * eye->z;
+    result->m[3][1] = -axisY[0] * eye->x - axisY[1] * eye->y - axisY[2] * eye->z;
+    result->m[3][2] =  axisZ[0] * eye->x + axisZ[1] * eye->y + axisZ[2] * eye->z;
+    result->m[3][3] = 1.0f;
 }

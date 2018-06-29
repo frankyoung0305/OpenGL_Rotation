@@ -22,10 +22,9 @@
     CGSize screenSize = [UIScreen mainScreen].bounds.size;
     GLView *myView = [[GLView alloc] initWithFrame:CGRectMake(0, 0, screenSize.width, screenSize.height)];
     [myView setup];
-    
-    [self.view addSubview:myView];  //add to root view as a subview
-    [myView compileShaders];
-    
+    [myView inintScene];// set non-changing vals
+
+    [self.view addSubview:myView];  //add to root view as a subview    
     CADisplayLink *displayLink = [CADisplayLink displayLinkWithTarget:myView selector:@selector(render)];
     
     

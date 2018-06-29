@@ -43,6 +43,7 @@ void ksVectorSubtract(ksVec3 * out, const ksVec3 * a, const ksVec3 * b);
 void ksVectorLerp(ksVec3 * out, const ksVec3 * a, const ksVec3 * b, float t); //线性插值，比例t
 void ksCrossProduct(ksVec3 * out, const ksVec3 * a, const ksVec3 * b);
 float ksDotProduct(const ksVec3 * a, const ksVec3 * b);
+void fyVectorGLSLProduct(ksVec3 * out, const ksVec3 * a, const ksVec3 * b); //GLSL 向量*
 
 float ksVectorLengthSquared(const ksVec3 * in);
 float ksVectorDistanceSquared(const ksVec3 * a, const ksVec3 * b);

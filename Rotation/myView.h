@@ -3,6 +3,54 @@
 #import <OpenGLES/ES3/gl.h>  //glXXX etc.
 
 #include "ksMatrix.h"
+typedef struct {
+    float Position[3];
+    float Color[4];
+    float Normal[3]; //法线
+    float TexCoord[2]; // New
+} Vertex;
+
+typedef struct {  //光照材质
+    GLuint _difsLightingMap;  //漫反射光照贴图纹理入口
+    GLuint _spclLightingMap;  //镜面反射光照贴图纹理入口
+    float shininess;
+} Material;
+
+typedef struct {
+    ksVec3 position;
+    ksVec3 direction;
+    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+    
+    float constant;
+    float linear;
+    float quadratic;
+    float cutOff;
+    float outerCutOff;
+} SpotLight;
+
+//dir light
+typedef struct {
+    ksVec3 direction;
+    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+} DirLight;
+//point light
+typedef struct {
+    ksVec3 position;
+    
+    float constant;
+    float linear;
+    float quadratic;
+    
+    ksVec3 ambient;
+    ksVec3 diffuse;
+    ksVec3 specular;
+} PointLight;
 
 @interface GLView : UIView
 {
@@ -12,72 +60,197 @@
     GLuint _framebuffer;
     GLuint _colorrenderbuffer;
     GLuint _depthRenderBuffer;
-
-    GLuint programHandle;
     
-    //vertex attributes for a object to render
-    GLuint _positionSlot;
-    GLuint _colorSlot;
+    GLuint vertexBuffer;
+    GLuint indexBuffer;
+    GLuint groundVertexBuffer;
+    GLuint groundIndexBuffer;
     
-    GLuint _hahaTexture;
+    GLuint _myTexture;
+    GLuint _groundTexture;
+    GLuint _woodTexture;
+    GLuint _frameTexture;
+    
     GLuint _texCoordSlot;
     GLuint _textureUniform;
+
+    //VAOs are here
+    GLuint _objectA;
+    GLuint _groundObj;
+    GLuint _lampObj;
     
-    //uniforms
-//    GLuint _varyColorSlot;
-//    GLuint _radianAngle;
-//    GLuint _transformMat;
+    // every object could use these slots
+    GLuint _positionSlot;
+    GLuint _colorSlot;
+    GLuint _normalSlot;
     
-    
-    GLint _modelViewSlot;
+    // uniform to set for every render action/object
+    GLint _modelSlot;
+    GLint _lookViewSlot;
     GLint _projectionSlot;
     
-    ksMatrix4 _modelViewMatrix;
-    ksMatrix4 _projectionMatrix;
+    //light
+//    GLint _lightDrcSlot;
+    GLint _eyePosSlot;
+//    GLint _ambientSlot;  //material
+    GLint _diffuseMapSlot;  //lighting map
+    GLint _specularMapSlot;
+    GLint _shininessSlot;
+    //spotlight
+    GLuint _spotLightPositionSlot;
+    GLuint _spotLightDircSlot;
+    GLuint _spotLightConstantSlot;
+    GLuint _spotLightLinearSlot;
+    GLuint _spotLightQuadraticSlot;
+    GLuint _spotLightAmbientSlot;
+    GLuint _spotLightDiffuseSlot;
+    GLuint _spotLightSpecularSlot;
+    GLuint _spotLightCutOffSlot;
+    GLuint _spotLightOuterCutOffSlot;
+    //directional light
+    GLuint _dirLightDircSlot;
+    GLuint _dirLightAmbntSlot;
+    GLuint _dirLightDifsSlot;
+    GLuint _dirLightSpclSlot;
+    //point light
+    GLuint _pointLightPosSlot0;
+    GLuint _pointLightAmbntSlot0;
+    GLuint _pointLightDifsSlot0;
+    GLuint _pointLightSpclSlot0;
+    GLuint _pointLightConstSlot0;
+    GLuint _pointLightLinearSlot0;
+    GLuint _pointLightQuadSlot0;
     
-    // vals for the transform matrices 
-    float _posX;
-    float _posY;
-    float _posZ;
+    GLuint _pointLightPosSlot1;
+    GLuint _pointLightAmbntSlot1;
+    GLuint _pointLightDifsSlot1;
+    GLuint _pointLightSpclSlot1;
+    GLuint _pointLightConstSlot1;
+    GLuint _pointLightLinearSlot1;
+    GLuint _pointLightQuadSlot1;
     
-    float _rotateX;
-    float _rotateY;
-    float _rotateZ;
-    float _angle;
+    GLuint _pointLightPosSlot2;
+    GLuint _pointLightAmbntSlot2;
+    GLuint _pointLightDifsSlot2;
+    GLuint _pointLightSpclSlot2;
+    GLuint _pointLightConstSlot2;
+    GLuint _pointLightLinearSlot2;
+    GLuint _pointLightQuadSlot2;
     
-    float scaleX;
-    float scaleY;
-    float scaleZ;
+    GLuint _pointLightPosSlot3;
+    GLuint _pointLightAmbntSlot3;
+    GLuint _pointLightDifsSlot3;
+    GLuint _pointLightSpclSlot3;
+    GLuint _pointLightConstSlot3;
+    GLuint _pointLightLinearSlot3;
+    GLuint _pointLightQuadSlot3;
+    ///////////slots for lamps
+    GLuint _lampPositionSlot;
 
+    GLint _lampModelSlot;
+    GLint _lampLookViewSlot;
+    GLint _lampProjectionSlot;
+    ///////////////
+    GLuint _programHandle; //program be used to render, may have many programs.
+    GLuint _lampProgram;
+    
+    ksMatrix4 _modelMatrix;
+    ksMatrix4 _projectionMatrix;
+    ksMatrix4 _lookViewMatrix;
+    
+    ksMatrix4 _lampModelMatrix;  //for lamp
+    ksMatrix4 _lampProjectionMatrix;
+    ksMatrix4 _lampLookViewMatrix;
+//    ksVec3 _lightDirc;
+
+    
+    // vals for projection
+    float _aspect;
+    float _sightAngleY; //view y angle in degrees
+    float _nearZ;
+    float _farZ;
+    
+    // vals for the uniform transform matrices
+//    float _posX;
+//    float _posY;
+//    float _posZ;
+    ksVec3 modelPos;
+    
+//    float _rotateX;
+//    float _rotateY;
+//    float _rotateZ;
+    float _angle;
+    ksVec3 modelRotate;
+    
+//    float scaleX;
+//    float scaleY;
+//    float scaleZ;
+    ksVec3 modelScale;
+    
+//    float eyeX;
+//    float eyeY;
+//    float eyeZ;
+    ksVec3 viewEye;
+    
+//    float tgtX;
+//    float tgtY;
+//    float tgtZ;
+    ksVec3 viewTgt;
+    
+    Material material;
+    Material metal;
+    Material wood;
+    Material ground;
+//lighting
+    SpotLight spotLight;
+    DirLight dirLight;
+    PointLight pointLight;
 }
 
 + (Class)layerClass; //overwrite func layerClass
 
+// func to set up val for whole view
 - (void)setupLayer;
 - (void)setupContext;
 
 - (void)setupRenderBuffer;
 - (void)setupDepthBuffer;
 - (void)setupFrameBuffer;
-
-//gen and set VAO
-//- (GLuint)setupRotationVAO;
-
 - (void)destoryRenderAndFrameBuffer;
 
-- (void)render;
+- (void)setupProjection;
+- (void)setupTransform;//encapsule to func 'setup'
+- (void)setupLookView;
 
-- (void)updateTransform;
-- (void)setupTransform;
-
+// func to compile a program to '_programHandle', get and enable entry points of program:_positionSlot, _colorSlot, _modelSlot, _projectionSlot
 - (GLuint)compileShader:(NSString*)shaderName withType:(GLenum)shaderType;
 - (void)compileShaders;
-- (void)setupVBOs;
 
+//gen and set VAO
+- (void)setupVAO;
+- (void)setupVBOs;
 - (void)setup;
+
+//bind VAO and set program
+//- (void)loadVertexArray: (GLuint) VAID withProgram: (GLuint) programHandle;
+
+// set uniform for every render action(varies every time GPU renders)
+- (void)updateTransform;
+- (void)updateView;
+- (void)updateProjection;
+- (void)updateLight;
+- (void)updateMaterial;
+
+- (void)updateLampTransform;
+
+//update vals that don't change while rendering
+- (void)inintScene;
+
+- (void)render;
 
 
 
 @end
+
 
 
