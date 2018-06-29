@@ -73,6 +73,7 @@ typedef struct {
     GLuint _woodTexture;
     GLuint _frameTexture;
     GLuint _grassTexture;
+    GLuint _windowTexture;
     
     GLuint _texCoordSlot;
     GLuint _textureUniform;

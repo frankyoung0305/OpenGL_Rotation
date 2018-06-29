@@ -14,6 +14,7 @@
 		3C308B2820D24C60007E65DF /* ground.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2720D24C5F007E65DF /* ground.png */; };
 		3C308B2A20D24E7E007E65DF /* wood.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2920D24E7D007E65DF /* wood.png */; };
 		3C308B2C20D3905D007E65DF /* frame.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C308B2B20D3905C007E65DF /* frame.png */; };
+		3C50C00D20E6125B00F556DE /* window.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C00C20E6125B00F556DE /* window.png */; };
 		3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */; };
 		3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */; };
 		3C9373FC20C41E3D00A48C10 /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = 3C9373FB20C41E3D00A48C10 /* AppDelegate.m */; };
@@ -55,6 +56,7 @@
 		3C308B2720D24C5F007E65DF /* ground.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ground.png; sourceTree = "<group>"; };
 		3C308B2920D24E7D007E65DF /* wood.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = wood.png; sourceTree = "<group>"; };
 		3C308B2B20D3905C007E65DF /* frame.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = frame.png; sourceTree = "<group>"; };
+		3C50C00C20E6125B00F556DE /* window.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = window.png; sourceTree = "<group>"; };
 		3C5FBEBC20C54767002CB0B7 /* myView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = myView.h; sourceTree = "<group>"; };
 		3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleVertex.glsl; sourceTree = "<group>"; };
 		3C5FBEBF20C56B0F002CB0B7 /* SimpleFragment.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = SimpleFragment.glsl; sourceTree = "<group>"; };
@@ -130,6 +132,7 @@
 		3C9373F920C41E3D00A48C10 /* Rotation */ = {
 			isa = PBXGroup;
 			children = (
+				3C50C00C20E6125B00F556DE /* window.png */,
 				3C0256F320E48DB30001EF0D /* grass.png */,
 				3C308B2B20D3905C007E65DF /* frame.png */,
 				3C308B2920D24E7D007E65DF /* wood.png */,
@@ -291,6 +294,7 @@
 				3C0256F420E48DB30001EF0D /* grass.png in Resources */,
 				3C93740220C41E3D00A48C10 /* Main.storyboard in Resources */,
 				3C27268720DB443B00D7B4AD /* lampFragment.glsl in Resources */,
+				3C50C00D20E6125B00F556DE /* window.png in Resources */,
 				3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */,
 				3C27268920DB479D00D7B4AD /* lampVertex.glsl in Resources */,
 			);

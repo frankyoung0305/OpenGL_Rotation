@@ -31,8 +31,8 @@ ksVec3 cubePositions[] = {
 };
 
 ksVec3 pointLightPositions[] = {
-    { 0.0f,  0.0f,  3.01f },
-    { 2.0f,  0.0f,  1.01f },
+    { 3.0f,  0.0f,  1.01f },
+    { 1.0f,  0.0f,  3.01f },
     { 0.0f,  1.5f,  2.0f  },
     { -1.5f,  1.0f,  -1.5f  }
 };
@@ -623,6 +623,7 @@ const GLubyte grassIndices[] = {
     _woodTexture = [self setupTexture:@"wood.png"];
     _frameTexture = [self setupTexture:@"frame.png"];
     _grassTexture = [self setupTexture:@"grass.png"];
+    _windowTexture = [self setupTexture:@"window.png"];
     
     glActiveTexture(GL_TEXTURE1); //激活纹理单元
     glBindTexture(GL_TEXTURE_2D, _myTexture);
@@ -634,7 +635,9 @@ const GLubyte grassIndices[] = {
     glBindTexture(GL_TEXTURE_2D, _frameTexture);
     glActiveTexture(GL_TEXTURE5);
     glBindTexture(GL_TEXTURE_2D, _grassTexture);
-
+    glActiveTexture(GL_TEXTURE6);
+    glBindTexture(GL_TEXTURE_2D, _windowTexture);
+    
     
     [self setupMaterial:&metal withDfsTexture:1 spcTexture:1 Shininess:256.0];
     [self setupMaterial:&ground withDfsTexture:2 spcTexture:2 Shininess:8.0];
@@ -775,6 +778,9 @@ const GLubyte grassIndices[] = {
 //    glEnable(GL_STENCIL_TEST);//开启模版测试
     glEnable(GL_DEPTH_TEST);//开启深度测试
 //    glDepthFunc(GL_NOTEQUAL);  //默认是less
+    
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
@@ -922,7 +928,8 @@ const GLubyte grassIndices[] = {
     glUseProgram(_lampProgram);
     glBindVertexArray(_grassObj);  //draw grass
     [self updateLampView];
-    glUniform1i(_lampTextureUniform, 5);//5 for grass texture
+//    glUniform1i(_lampTextureUniform, 5);//5 for grass texture
+    glUniform1i(_lampTextureUniform, 6);  //6 for window texture
     for(unsigned int j = 0; j < 2; j++){
         modelPos = pointLightPositions[j];
         _angle = 0;
