@@ -65,11 +65,14 @@ typedef struct {
     GLuint indexBuffer;
     GLuint groundVertexBuffer;
     GLuint groundIndexBuffer;
+    GLuint grassVertexBuffer;
+    GLuint grassIndexBuffer;
     
     GLuint _myTexture;
     GLuint _groundTexture;
     GLuint _woodTexture;
     GLuint _frameTexture;
+    GLuint _grassTexture;
     
     GLuint _texCoordSlot;
     GLuint _textureUniform;
@@ -78,6 +81,7 @@ typedef struct {
     GLuint _objectA;
     GLuint _groundObj;
     GLuint _lampObj;
+    GLuint _grassObj;
     
     // every object could use these slots
     GLuint _positionSlot;
@@ -146,10 +150,12 @@ typedef struct {
     GLuint _pointLightQuadSlot3;
     ///////////slots for lamps
     GLuint _lampPositionSlot;
+    GLuint _lampTexCoordSlot;
 
     GLint _lampModelSlot;
     GLint _lampLookViewSlot;
     GLint _lampProjectionSlot;
+    GLint _lampTextureUniform;
     ///////////////
     GLuint _programHandle; //program be used to render, may have many programs.
     GLuint _lampProgram;

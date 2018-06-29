@@ -29,27 +29,31 @@ unsigned int ksNextPot(unsigned int n)
 void ksMatrixScale(ksMatrix4 * result, float sx, float sy, float sz)
 {
 	result->m[0][0] *= sx;
-	result->m[0][1] *= sx;
-	result->m[0][2] *= sx;
-	result->m[0][3] *= sx;
+	result->m[1][0] *= sx;
+	result->m[2][0] *= sx;
+	result->m[3][0] *= sx;
 
-	result->m[1][0] *= sy;
+	result->m[0][1] *= sy;
 	result->m[1][1] *= sy;
-	result->m[1][2] *= sy;
-	result->m[1][3] *= sy;
+	result->m[2][1] *= sy;
+	result->m[3][1] *= sy;
 
-	result->m[2][0] *= sz;
-	result->m[2][1] *= sz;
+	result->m[0][2] *= sz;
+	result->m[1][2] *= sz;
 	result->m[2][2] *= sz;
-	result->m[2][3] *= sz;
+	result->m[3][2] *= sz;
 }
 
-void ksMatrixTranslate(ksMatrix4 * result, float tx, float ty, float tz)
+void ksMatrixTranslate(ksMatrix4 * result, float tx, float ty, float tz)  //question
 {
-	result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
-	result->m[3][1] += (result->m[0][1] * tx + result->m[1][1] * ty + result->m[2][1] * tz);
-	result->m[3][2] += (result->m[0][2] * tx + result->m[1][2] * ty + result->m[2][2] * tz);
-	result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
+//    result->m[3][0] += (result->m[0][0] * tx + result->m[1][0] * ty + result->m[2][0] * tz);
+//    result->m[3][1] += (result->m[0][1] * tx + result->m[1][1] * ty + result->m[2][1] * tz);
+//    result->m[3][2] += (result->m[0][2] * tx + result->m[1][2] * ty + result->m[2][2] * tz);
+//    result->m[3][3] += (result->m[0][3] * tx + result->m[1][3] * ty + result->m[2][3] * tz);
+    result->m[3][0] += result->m[3][3] * tx;
+    result->m[3][1] += result->m[3][3] * ty;
+    result->m[3][2] += result->m[3][3] * tz;
+
 }
 
 void ksMatrixRotate(ksMatrix4 * result, float angle, float x, float y, float z)
@@ -81,23 +85,23 @@ void ksMatrixRotate(ksMatrix4 * result, float angle, float x, float y, float z)
 		oneMinusCos = 1.0f - cosAngle;
 
 		rotMat.m[0][0] = (oneMinusCos * xx) + cosAngle;
-		rotMat.m[0][1] = (oneMinusCos * xy) - zs;
-		rotMat.m[0][2] = (oneMinusCos * zx) + ys;
-		rotMat.m[0][3] = 0.0F; 
-
-		rotMat.m[1][0] = (oneMinusCos * xy) + zs;
-		rotMat.m[1][1] = (oneMinusCos * yy) + cosAngle;
-		rotMat.m[1][2] = (oneMinusCos * yz) - xs;
-		rotMat.m[1][3] = 0.0F;
-
-		rotMat.m[2][0] = (oneMinusCos * zx) - ys;
-		rotMat.m[2][1] = (oneMinusCos * yz) + xs;
-		rotMat.m[2][2] = (oneMinusCos * zz) + cosAngle;
-		rotMat.m[2][3] = 0.0F; 
-
+		rotMat.m[1][0] = (oneMinusCos * xy) - zs;
+		rotMat.m[2][0] = (oneMinusCos * zx) + ys;
 		rotMat.m[3][0] = 0.0F;
+
+		rotMat.m[0][1] = (oneMinusCos * xy) + zs;
+		rotMat.m[1][1] = (oneMinusCos * yy) + cosAngle;
+		rotMat.m[2][1] = (oneMinusCos * yz) - xs;
 		rotMat.m[3][1] = 0.0F;
+
+		rotMat.m[0][2] = (oneMinusCos * zx) - ys;
+		rotMat.m[1][2] = (oneMinusCos * yz) + xs;
+		rotMat.m[2][2] = (oneMinusCos * zz) + cosAngle;
 		rotMat.m[3][2] = 0.0F;
+
+		rotMat.m[0][3] = 0.0F;
+		rotMat.m[1][3] = 0.0F;
+		rotMat.m[2][3] = 0.0F;
 		rotMat.m[3][3] = 1.0F;
 
 		ksMatrixMultiply( result, &rotMat, result );
@@ -341,18 +345,18 @@ void ksFrustum(ksMatrix4 * result, float left, float right, float bottom, float 
 		return;
 
 	frust.m[0][0] = 2.0f * nearZ / deltaX;
-	frust.m[0][1] = frust.m[0][2] = frust.m[0][3] = 0.0f;
+	frust.m[1][0] = frust.m[2][0] = frust.m[3][0] = 0.0f;
 
 	frust.m[1][1] = 2.0f * nearZ / deltaY;
-	frust.m[1][0] = frust.m[1][2] = frust.m[1][3] = 0.0f;
+	frust.m[0][1] = frust.m[2][1] = frust.m[3][1] = 0.0f;
 
-	frust.m[2][0] = (right + left) / deltaX;
-	frust.m[2][1] = (top + bottom) / deltaY;
+	frust.m[0][2] = (right + left) / deltaX;
+	frust.m[1][2] = (top + bottom) / deltaY;
 	frust.m[2][2] = -(nearZ + farZ) / deltaZ;
-	frust.m[2][3] = -1.0f;
+	frust.m[3][2] = -1.0f;
 
-	frust.m[3][2] = -2.0f * nearZ * farZ / deltaZ;
-	frust.m[3][0] = frust.m[3][1] = frust.m[3][3] = 0.0f;
+	frust.m[2][3] = -2.0f * nearZ * farZ / deltaZ;
+	frust.m[0][3] = frust.m[1][3] = frust.m[3][3] = 0.0f;
 
 	ksMatrixMultiply(result, &frust, result);
 }
@@ -364,7 +368,7 @@ void ksPerspective(ksMatrix4 * result, float fovy, float aspect, float nearZ, fl
 	frustumH = tanf( fovy / 360.0f * M_PI ) * nearZ;
 	frustumW = frustumH * aspect;
 
-	ksFrustum(result, -frustumW, frustumW, -frustumH, frustumH, nearZ, farZ);
+    ksFrustum(result, -frustumW, frustumW, -frustumH, frustumH, nearZ, farZ);
 }
 
 void ksOrtho(ksMatrix4 * result, float left, float right, float bottom, float top, float nearZ, float farZ)
@@ -394,44 +398,48 @@ void ksLookAt(ksMatrix4 * result, const ksVec3 * eye, const ksVec3 * target, con
 //    //ksVec4 eyePrime;
 //    ksMatrix4 transMat;
 //
-//    ksVectorSubtract(&forward, target, eye);
+//    ksVectorSubtract(&forward, eye, target); //point to eye
 //    ksVectorNormalize(&forward);
 //
-//    ksCrossProduct(&side, up, &forward);
-//    ksVectorNormalize(&side );
+//    ksCrossProduct(&side, up, &forward);  //right vec
+//    ksVectorNormalize(&side);
 //
-//    ksCrossProduct(&up2, &side, &forward);
+//    ksCrossProduct(&up2, &forward, &side);
 //    ksVectorNormalize(&up2);
 //
 //    ksMatrixLoadIdentity(result);
 //    result->m[0][0] = side.x;
-//    result->m[0][1] = side.y;
-//    result->m[0][2] = side.z;
-//    result->m[1][0] = up2.x;
+//    result->m[1][0] = side.y;
+//    result->m[2][0] = side.z;
+//    result->m[0][1] = up2.x;
 //    result->m[1][1] = up2.y;
-//    result->m[1][2] = up2.z;
-//    result->m[2][0] = -forward.x;
-//    result->m[2][1] = -forward.y;
-//    result->m[2][2] = -forward.z;
+//    result->m[2][1] = up2.z;
+//    result->m[0][2] = forward.x;
+//    result->m[1][2] = forward.y;
+//    result->m[2][2] = forward.z;
 //
 //    ksMatrixLoadIdentity(&transMat);
 //    ksMatrixTranslate(&transMat, -eye->x, -eye->y, -eye->z);
 //
 //    ksMatrixMultiply(result, result, &transMat);
 //
-//    //eyePrime.x = -eye->x;
-//    //eyePrime.y = -eye->y;
-//    //eyePrime.z = -eye->z;
-//    //eyePrime.w = 1;
-//
-//    //ksMatrixMultiplyVector(&eyePrime, result, &eyePrime);
-//    //ksMatrixTranspose(result, result);
-//
-//    //result->m[3][0] = eyePrime.x;
-//    //result->m[3][1] = eyePrime.y;
-//    //result->m[3][2] = eyePrime.z;
-//    //result->m[3][3] = eyePrime.w;
-    /////////////////////////////////////////
+////    eyePrime.x = -eye->x;
+////    eyePrime.y = -eye->y;
+////    eyePrime.z = -eye->z;
+////    eyePrime.w = 1;
+////
+////    ksMatrixMultiplyVector(&eyePrime, result, &eyePrime);
+////    ksMatrixTranspose(result, result);
+////
+////    result->m[3][0] = eyePrime.x;
+////    result->m[3][1] = eyePrime.y;
+////    result->m[3][2] = eyePrime.z;
+////    result->m[3][3] = eyePrime.w;
+    
+    
+    
+    
+//    ///////////////////////////////////////
 //    ESMatrix *result,
 //    float posX,    float posY,    float posZ,
 //    float lookAtX, float lookAtY, float lookAtZ,
@@ -440,69 +448,69 @@ void ksLookAt(ksMatrix4 * result, const ksVec3 * eye, const ksVec3 * target, con
     
     float axisX[3], axisY[3], axisZ[3];
     float length;
-    
-    // axisZ = lookAt - pos
-    axisZ[0] = target->x - eye->x;
-    axisZ[1] = target->y - eye->y;
-    axisZ[2] = target->z - eye->z;
-    
+
+    // axisZ 指向camera的z方向（摄像机方向的反向
+    axisZ[0] = eye->x - target->x;
+    axisZ[1] = eye->y - target->y;
+    axisZ[2] = eye->z - target->z;
+
     // normalize axisZ
     length = sqrtf ( axisZ[0] * axisZ[0] + axisZ[1] * axisZ[1] + axisZ[2] * axisZ[2] );
-    
+
     if ( length != 0.0f )
     {
         axisZ[0] /= length;
         axisZ[1] /= length;
         axisZ[2] /= length;
     }
-    
+
     // axisX = up X axisZ
     axisX[0] = up->y * axisZ[2] - up->z * axisZ[1];
     axisX[1] = up->z * axisZ[0] - up->x * axisZ[2];
     axisX[2] = up->x * axisZ[1] - up->y * axisZ[0];
-    
+
     // normalize axisX
     length = sqrtf ( axisX[0] * axisX[0] + axisX[1] * axisX[1] + axisX[2] * axisX[2] );
-    
+
     if ( length != 0.0f )
     {
         axisX[0] /= length;
         axisX[1] /= length;
         axisX[2] /= length;
     }
-    
+
     // axisY = axisZ x axisX
     axisY[0] = axisZ[1] * axisX[2] - axisZ[2] * axisX[1];
     axisY[1] = axisZ[2] * axisX[0] - axisZ[0] * axisX[2];
     axisY[2] = axisZ[0] * axisX[1] - axisZ[1] * axisX[0];
-    
+
     // normalize axisY
     length = sqrtf ( axisY[0] * axisY[0] + axisY[1] * axisY[1] + axisY[2] * axisY[2] );
-    
+
     if ( length != 0.0f )
     {
         axisY[0] /= length;
         axisY[1] /= length;
         axisY[2] /= length;
     }
-    
+
     ksMatrixLoadIdentity(result);
 
-    result->m[0][0] = -axisX[0];
+    result->m[0][0] =  axisX[0];
     result->m[0][1] =  axisY[0];
-    result->m[0][2] = -axisZ[0];
-    
-    result->m[1][0] = -axisX[1];
+    result->m[0][2] =  axisZ[0];
+
+    result->m[1][0] =  axisX[1];
     result->m[1][1] =  axisY[1];
-    result->m[1][2] = -axisZ[1];
-    
-    result->m[2][0] = -axisX[2];
+    result->m[1][2] =  axisZ[1];
+
+    result->m[2][0] =  axisX[2];
     result->m[2][1] =  axisY[2];
-    result->m[2][2] = -axisZ[2];
-    
+    result->m[2][2] =  axisZ[2];
+
     // translate (-posX, -posY, -posZ)
-    result->m[3][0] =  axisX[0] * eye->x + axisX[1] * eye->y + axisX[2] * eye->z;
+    result->m[3][0] = -axisX[0] * eye->x - axisX[1] * eye->y - axisX[2] * eye->z;
     result->m[3][1] = -axisY[0] * eye->x - axisY[1] * eye->y - axisY[2] * eye->z;
-    result->m[3][2] =  axisZ[0] * eye->x + axisZ[1] * eye->y + axisZ[2] * eye->z;
+    result->m[3][2] = -axisZ[0] * eye->x - axisZ[1] * eye->y - axisZ[2] * eye->z;
     result->m[3][3] = 1.0f;
 }

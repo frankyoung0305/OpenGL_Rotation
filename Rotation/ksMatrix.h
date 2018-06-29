@@ -18,10 +18,10 @@
 #define DEG2RAD( a ) (((a) * M_PI) / 180.0f)
 #define RAD2DEG( a ) (((a) * 180.f) / M_PI)
 
-// angle indexes
-#define	PITCH				0		// up / down
-#define	YAW					1		// left / right
-#define	ROLL				2		// fall over
+//// angle indexes
+//#define    PITCH                0        // up / down
+//#define    YAW                    1        // left / right
+//#define    ROLL                2        // fall over
 
 typedef struct ksMatrix3
 {
@@ -37,7 +37,7 @@ typedef struct ksMatrix4
 extern "C" {
 #endif
 
-	unsigned int ksNextPot(unsigned int n); //?what?
+//    unsigned int ksNextPot(unsigned int n); //?what?
 
 	void ksMatrixCopy(ksMatrix4 * target, const ksMatrix4 * src);
 
