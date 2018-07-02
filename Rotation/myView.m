@@ -19,9 +19,9 @@
 
 ksVec3 cubePositions[] = {
     { 0.0f,  0.0f,  0.0f },
-    { 0.0f,  2.0f,  0.0f },
-    { 2.0f,  0.0f,  0.0f },
-    { 0.0f,  0.0f,  2.0f },
+    { 2.0f,  5.0f, -15.0f},
+    {-1.5f, -2.2f, -2.5f },
+    {-3.8f, -2.0f, -12.3f},
     { 2.4f, -0.4f, -3.5f },
     {-1.7f,  3.0f, -7.5f },
     { 1.3f, -2.0f, -2.5f },
@@ -31,10 +31,10 @@ ksVec3 cubePositions[] = {
 };
 
 ksVec3 pointLightPositions[] = {
-    { 3.0f,  0.0f,  1.01f },
-    { 1.0f,  0.0f,  3.01f },
-    { 0.0f,  1.5f,  2.0f  },
-    { -1.5f,  1.0f,  -1.5f  }
+    { 0.7f,  0.2f,  2.0f },
+    { 2.3f, -3.3f, -4.0f },
+    {-4.0f,  2.0f, -12.0f},
+    { 0.0f,  0.0f, -3.0f }
 };
 /////cube
 const Vertex Vertices[] = {
@@ -149,8 +149,6 @@ const GLubyte grassIndices[] = {
     glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
     // GL_RENDERBUFFER 的内容存储到实现 EAGLDrawable 协议的 CAEAGLLayer
     [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
-    
-
 }
 
 - (void)setupDepthStencilBuffer {
@@ -165,6 +163,9 @@ const GLubyte grassIndices[] = {
     glGenFramebuffers(1, &_framebuffer);
     // 设置为当前 framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+    [self setupRenderBuffer];
+    [self setupDepthStencilBuffer];
+
     // 将 _colorRenderBuffer 装配到 GL_COLOR_ATTACHMENT0 这个装配点上
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER, _colorrenderbuffer);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
@@ -174,6 +175,42 @@ const GLubyte grassIndices[] = {
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
         NSLog(@"frame buffer assembling ERROR: %x \n", status);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  //unbind frame buffer
+    
+//    //////////////////////////////////////////////////fbo for texture rendering
+    glGenFramebuffers(1, &_textureFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
+
+    // The texture we're going to render to, 创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上
+    GLuint renderedTexture;
+    glGenTextures(1, &renderedTexture);
+    // "Bind" the newly created texture : all future texture functions will modify this texture
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+
+    // Give an empty image to OpenGL ( the last "0" )
+    glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, self.frame.size.width, self.frame.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+
+    // Poor filtering. Needed !最近取样（方块风格
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+//     //Set "renderedTexture" as our colour attachement #0
+//    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+//
+    //////     render buffer for texture fbo
+    GLuint rbo;
+    glGenRenderbuffers(1, &rbo);
+    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    
+
+    status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
+    if(status != GL_FRAMEBUFFER_COMPLETE)
+        NSLog(@"texture frame buffer assembling ERROR: %x \n", status);
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);  //unbind texture frame buffer
+////////////////////////////////////////////////////////////
 }
 - (void)destoryRenderAndFrameBuffer
 {
@@ -603,8 +640,8 @@ const GLubyte grassIndices[] = {
     
     [self destoryRenderAndFrameBuffer];
     
-    [self setupDepthStencilBuffer];
-    [self setupRenderBuffer];
+//    [self setupDepthStencilBuffer];
+//    [self setupRenderBuffer];
     
     [self setupFrameBuffer];
 
@@ -682,9 +719,9 @@ const GLubyte grassIndices[] = {
 }
 - (void)updateLampTransform{
     ksMatrixLoadIdentity(&_lampModelMatrix);
+    ksMatrixScale(&_lampModelMatrix, modelScale.x, modelScale.y, modelScale.z);
     ksMatrixTranslate(&_lampModelMatrix, modelPos.x, modelPos.y, modelPos.z);
     ksMatrixRotate(&_lampModelMatrix, _angle, modelRotate.x, modelRotate.y, modelRotate.z);
-    ksMatrixScale(&_lampModelMatrix, modelScale.x, modelScale.y, modelScale.z);
     glUniformMatrix4fv(_lampModelSlot, 1, GL_FALSE, (GLfloat*)&_lampModelMatrix.m[0][0]);
 }
 - (void)updateView{
@@ -775,12 +812,13 @@ const GLubyte grassIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
+    
 //    glEnable(GL_STENCIL_TEST);//开启模版测试
     glEnable(GL_DEPTH_TEST);//开启深度测试
 //    glDepthFunc(GL_NOTEQUAL);  //默认是less
     
-    glEnable(GL_BLEND);
-    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+//    glEnable(GL_BLEND);
+//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
@@ -838,6 +876,7 @@ const GLubyte grassIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
@@ -868,18 +907,18 @@ const GLubyte grassIndices[] = {
     glUniform3f(_spotLightPositionSlot, spotLight.position.x, spotLight.position.y, spotLight.position.z); //update uinform
     glUniform3f(_spotLightDircSlot, spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
     
-    /////////////////////////////ground
-    glBindVertexArray(_groundObj);
-    material = ground;
-    [self updateMaterial];
-    modelPos.y = -1;
-    modelScale.x = 10.0f;
-    modelScale.y = 10.0f;
-    modelScale.z = 10.0f;
-    [self updateTransform];
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0);
-    
+//    /////////////////////////////ground
+//    glBindVertexArray(_groundObj);
+//    material = ground;
+//    [self updateMaterial];
+//    modelPos.y = -1;
+//    modelScale.x = 10.0f;
+//    modelScale.y = 10.0f;
+//    modelScale.z = 10.0f;
+//    [self updateTransform];
+//    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    glBindVertexArray(0);
+//
     ///////////////////////////////
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);
@@ -889,64 +928,42 @@ const GLubyte grassIndices[] = {
     //    glUniform1i(_textureUniform, 0);
     material = wood;
     [self updateMaterial]; //all cubes using same material
-    for(unsigned int i = 0; i < 4; i++)
+    for(unsigned int i = 0; i < 10; i++)
     {
         modelPos = cubePositions[i];
         
-//        modelRotate.x = 1.0f;
-//        modelRotate.y = 0.3f;
-//        modelRotate.z = 0.5f;
-//        float angle = 20.0f * i;
-//        _angle = angle;
-        modelScale.x = 1.0f;
-        modelScale.y = 1.0f;
-        modelScale.z = 1.0f;
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
+        float angle = 20.0f * i;
+        _angle = angle;
+        modelScale.x = 0.5f;
+        modelScale.y = 0.5f;
+        modelScale.z = 0.5f;
         [self updateTransform];
         //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
         //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
-//
-//    //then use lamp program to render lamps
-//    glUseProgram(_lampProgram);
-//    glBindVertexArray(_lampObj);
-//    [self updateLampView];
-//    for(unsigned int j = 0; j < 4; j++){
-//        modelPos = pointLightPositions[j];
-//        _angle = 0;
-//        modelScale.x = 0.1;
-//        modelScale.y = 0.1;
-//        modelScale.z = 0.1;
-//        modelRotate.x = 0.0;
-//        modelRotate.y = 1.0;
-//        modelRotate.z = 0.0;
-//        [self updateLampTransform];
-//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-//    }
-//    glBindVertexArray(0);//unbind vao
+
+    //then use lamp program to render lamps
     glUseProgram(_lampProgram);
-    glBindVertexArray(_grassObj);  //draw grass
+    glBindVertexArray(_lampObj);
     [self updateLampView];
-//    glUniform1i(_lampTextureUniform, 5);//5 for grass texture
-    glUniform1i(_lampTextureUniform, 6);  //6 for window texture
-    for(unsigned int j = 0; j < 2; j++){
+    for(unsigned int j = 0; j < 4; j++){
         modelPos = pointLightPositions[j];
         _angle = 0;
-        modelScale.x = 1.0;
-        modelScale.y = 1.0;
-        modelScale.z = 1.0;
+        modelScale.x = 0.1;
+        modelScale.y = 0.1;
+        modelScale.z = 0.1;
         modelRotate.x = 0.0;
-        modelRotate.y = 0.0;
+        modelRotate.y = 1.0;
         modelRotate.z = 0.0;
         [self updateLampTransform];
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
-    
-    
-    
-    
     
     //count fps
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
@@ -956,6 +973,7 @@ const GLubyte grassIndices[] = {
     int fps = (1.0/timval)*1000;
     NSLog(@"timval:%llums; FPS:%d", timval,fps);
     
+    glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
     [_context presentRenderbuffer:GL_RENDERBUFFER];
 }
 

@@ -61,6 +61,8 @@ typedef struct {
     GLuint _colorrenderbuffer;
     GLuint _depthStencilRenderBuffer;
     
+    GLuint _textureFrameBuffer; //for render to texture
+    
     GLuint vertexBuffer;
     GLuint indexBuffer;
     GLuint groundVertexBuffer;

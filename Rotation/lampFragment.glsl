@@ -2,14 +2,13 @@
 #version 300 es
 precision highp float;
 
+in vec3 fragNormal;
 in vec2 TexCoordOut;
-
-uniform sampler2D grassTex;
+in vec3 worldPos;
 
 out vec4 FragColor;
 
 void main(void) {
     
-    FragColor = texture(grassTex, TexCoordOut);
-    
+    FragColor = vec4(1.0) ;
 }
