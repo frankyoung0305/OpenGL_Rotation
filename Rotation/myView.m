@@ -154,6 +154,11 @@ const GLubyte groundIndices[] = {
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,
                               GL_RENDERBUFFER, _colorrenderbuffer);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthRenderBuffer);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+        NSLog(@"frame buffer incomplete.");
+    
+    
+
 }
 - (void)destoryRenderAndFrameBuffer
 {
