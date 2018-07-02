@@ -61,6 +61,9 @@ typedef struct {
     GLuint _colorrenderbuffer;
     GLuint _depthStencilRenderBuffer;
     
+    GLuint renderedTexture; //texture target to draw on
+
+    
     GLuint _textureFrameBuffer; //for render to texture
     
     GLuint vertexBuffer;
@@ -78,13 +81,13 @@ typedef struct {
     GLuint _windowTexture;
     
     GLuint _texCoordSlot;
-    GLuint _textureUniform;
 
     //VAOs are here
     GLuint _objectA;
     GLuint _groundObj;
     GLuint _lampObj;
     GLuint _grassObj;
+    GLuint _screenObj;
     
     // every object could use these slots
     GLuint _positionSlot;
@@ -159,9 +162,16 @@ typedef struct {
     GLint _lampLookViewSlot;
     GLint _lampProjectionSlot;
     GLint _lampTextureUniform;
+    
+    ///////////slots for screen shader program
+    GLint _screenPosSlot;
+    GLint _screenTexCoordSlot;
+    GLint _screenTextureSlot;
+    
     ///////////////
     GLuint _programHandle; //program be used to render, may have many programs.
     GLuint _lampProgram;
+    GLuint _screenProgram; //for rendering from texture
     
     ksMatrix4 _modelMatrix;
     ksMatrix4 _projectionMatrix;

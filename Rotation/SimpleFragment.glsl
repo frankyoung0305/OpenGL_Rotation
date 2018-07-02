@@ -48,7 +48,6 @@ in vec3 worldPos;
 
 out vec4 FragColor;
 
-uniform sampler2D Texture;
 
 uniform Material material;
 uniform vec3 eyePos;

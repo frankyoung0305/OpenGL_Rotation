@@ -182,7 +182,6 @@ const GLubyte grassIndices[] = {
     glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
 
     // The texture we're going to render to, 创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上
-    GLuint renderedTexture;
     glGenTextures(1, &renderedTexture);
     // "Bind" the newly created texture : all future texture functions will modify this texture
     glBindTexture(GL_TEXTURE_2D, renderedTexture);
@@ -271,6 +270,9 @@ const GLubyte grassIndices[] = {
                                      withType:GL_VERTEX_SHADER];
     GLuint lampfragmentShader = [self compileShader:@"lampFragment"
                                        withType:GL_FRAGMENT_SHADER];
+    //compile screenShader
+    GLuint screenVS = [self compileShader:@"postProcessVS" withType:GL_VERTEX_SHADER];
+    GLuint screenFS = [self compileShader:@"postProcessFS" withType:GL_FRAGMENT_SHADER];
     
     // 调用接下来的func来创建和将shader们连接到program。当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，会得到一个链接错误
     _programHandle = glCreateProgram();
@@ -282,6 +284,11 @@ const GLubyte grassIndices[] = {
     glAttachShader(_lampProgram, lampvertexShader);
     glAttachShader(_lampProgram, lampfragmentShader);
     glLinkProgram(_lampProgram);
+    // link screen shader program
+    _screenProgram = glCreateProgram();
+    glAttachShader(_screenProgram, screenVS);
+    glAttachShader(_screenProgram, screenFS);
+    glLinkProgram(_screenProgram);
     
     // check
     GLint linkSuccess;
@@ -302,20 +309,32 @@ const GLubyte grassIndices[] = {
         NSLog(@"lamp program fail: %@", messageString);
         exit(1);
     }
+    GLint screenLinkSuccess;
+    glGetProgramiv(_screenProgram, GL_LINK_STATUS, &screenLinkSuccess);
+    if (screenLinkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(_screenProgram, sizeof(messages), 0, &messages[0]);
+        NSString *messageString = [NSString stringWithUTF8String:messages];
+        NSLog(@"lamp program fail: %@", messageString);
+        exit(1);
+    }
     
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
     _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
     _normalSlot = glGetAttribLocation(_programHandle, "normal");
+    _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");    //texture
+
     
     ////lamp attribs
     _lampPositionSlot = glGetAttribLocation(_lampProgram, "Position");
     _lampTexCoordSlot = glGetAttribLocation(_lampProgram, "TexCoordIn");
     
-    //texture
-    _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");
-    _textureUniform = glGetUniformLocation(_programHandle, "Texture");
+    //screen attrib slots
+    _screenPosSlot = glGetAttribLocation(_screenProgram, "aPos");
+    _screenTexCoordSlot = glGetAttribLocation(_screenProgram, "aTexCoords");
     
+    ///////////////////////////////uniforms///////////////////////////
     // Get the uniform model-view matrix slot from program
     _modelSlot = glGetUniformLocation(_programHandle, "model");
     // Get the uniform projection matrix slot from program
@@ -327,6 +346,9 @@ const GLubyte grassIndices[] = {
     _lampProjectionSlot = glGetUniformLocation(_lampProgram, "projection");
     _lampLookViewSlot = glGetUniformLocation(_lampProgram, "lookView");
     _lampTextureUniform = glGetUniformLocation(_lampProgram, "grassTex");
+    //////////////////////////////texture uniformslot for screen program
+    _screenTextureSlot = glGetUniformLocation(_screenProgram, "screenTexture");
+
 
     ////////////////////////////////
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
@@ -623,15 +645,29 @@ const GLubyte grassIndices[] = {
     glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndexBuffer);
     
-    glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), 0);
-    glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE,
-                          sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
+    glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
     
     glEnableVertexAttribArray(_lampPositionSlot);
     glEnableVertexAttribArray(_lampTexCoordSlot);
     
     glBindVertexArray(0);
+    
+    //screen use screen program, use vbo of grass obj
+    glGenVertexArrays(1, &_screenObj);
+    glBindVertexArray(_screenObj);
+    
+    glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndexBuffer);
+    
+    glVertexAttribPointer(_screenPosSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glVertexAttribPointer(_screenTexCoordSlot, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
+    
+    glEnableVertexAttribArray(_screenPosSlot);
+    glEnableVertexAttribArray(_screenTexCoordSlot);
+    
+    glBindVertexArray(0); //unbind
+
 }
 
 - (void)setup {
@@ -812,13 +848,6 @@ const GLubyte grassIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-    
-//    glEnable(GL_STENCIL_TEST);//开启模版测试
-    glEnable(GL_DEPTH_TEST);//开启深度测试
-//    glDepthFunc(GL_NOTEQUAL);  //默认是less
-    
-//    glEnable(GL_BLEND);
-//    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
@@ -876,10 +905,16 @@ const GLubyte grassIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);// render to texture
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
+    //    glEnable(GL_STENCIL_TEST);//开启模版测试
+    glEnable(GL_DEPTH_TEST);//开启深度测试
+    //    glDepthFunc(GL_NOTEQUAL);  //默认是less
+    
+    //    glEnable(GL_BLEND);
+    //    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
     // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
@@ -925,7 +960,6 @@ const GLubyte grassIndices[] = {
     //applying  texture
     //    glActiveTexture(GL_TEXTURE0);
     //    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    //    glUniform1i(_textureUniform, 0);
     material = wood;
     [self updateMaterial]; //all cubes using same material
     for(unsigned int i = 0; i < 10; i++)
@@ -964,7 +998,21 @@ const GLubyte grassIndices[] = {
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
+    ///////////////////////////////////////////////drawing to screen
+    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//
     
+    glUseProgram(_screenProgram);
+    glBindVertexArray(_screenObj);
+    glDisable(GL_DEPTH_TEST);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glUniform1i(_screenTextureSlot, 0);
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0); //unbind
+
+
     //count fps
     UInt64 recordTime = [[NSDate date] timeIntervalSince1970]*1000;
     static UInt64 lasttime;
@@ -972,6 +1020,7 @@ const GLubyte grassIndices[] = {
     lasttime = recordTime;
     int fps = (1.0/timval)*1000;
     NSLog(@"timval:%llums; FPS:%d", timval,fps);
+    
     
     glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
     [_context presentRenderbuffer:GL_RENDERBUFFER];
