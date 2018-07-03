@@ -44,10 +44,10 @@ const Vertex Vertices[] = {
     {{-1, 1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {0, TEX_COORD_MAX}},
     {{-1, -1, 1}, {1, 0, 0, 1}, {0, 0, 1}, {0, 0}},
     // Back
-    {{1, 1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, TEX_COORD_MAX}},
     {{-1, -1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, 0}},
-    {{1, -1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, 0}},
     {{-1, 1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {TEX_COORD_MAX, TEX_COORD_MAX}},
+    {{1, 1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, TEX_COORD_MAX}},
+    {{1, -1, -1}, {0, 1, 0, 1}, {0, 0, -1}, {0, 0}},
     // Left
     {{-1, -1, 1}, {0, 0, 1, 1}, {-1, 0, 0}, {TEX_COORD_MAX, 0}},
     {{-1, 1, 1}, {0, 0, 1, 1}, {-1, 0, 0}, {TEX_COORD_MAX, TEX_COORD_MAX}},
@@ -86,13 +86,58 @@ const Vertex grassVert[] = {
     
 };
 
+float skyboxVertices[] = {
+    // positions
+    -1.0f,  1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    
+    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
+    
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    
+    -1.0f, -1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,
+    1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f,
+    
+    -1.0f,  1.0f, -1.0f,
+    1.0f,  1.0f, -1.0f,
+    1.0f,  1.0f,  1.0f,
+    1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f,  1.0f,
+    -1.0f,  1.0f, -1.0f,
+    
+    -1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f,  1.0f,
+    1.0f, -1.0f,  1.0f
+};
+
 const GLubyte Indices[] = {
     // Front
     0, 1, 2,
     2, 3, 0,
     // Back
     4, 5, 6,
-    4, 5, 7,
+    6, 7, 4,
     // Left
     8, 9, 10,
     10, 11, 8,
@@ -182,9 +227,9 @@ const GLubyte grassIndices[] = {
     glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
 
     // The texture we're going to render to, 创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上
-    glGenTextures(1, &renderedTexture);
+    glGenTextures(1, &_renderedTexture);
     // "Bind" the newly created texture : all future texture functions will modify this texture
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glBindTexture(GL_TEXTURE_2D, _renderedTexture);
 
     // Give an empty image to OpenGL ( the last "0" )
     glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, self.frame.size.width, self.frame.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
@@ -195,14 +240,14 @@ const GLubyte grassIndices[] = {
 
 //     //Set "renderedTexture" as our colour attachement #0
 //    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
-    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, renderedTexture, 0);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderedTexture, 0);
 //
     //////     render buffer for texture fbo
-    GLuint rbo;
-    glGenRenderbuffers(1, &rbo);
-    glBindRenderbuffer(GL_RENDERBUFFER, rbo);
+    GLuint renderbufferForRTT;
+    glGenRenderbuffers(1, &renderbufferForRTT);
+    glBindRenderbuffer(GL_RENDERBUFFER, renderbufferForRTT);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, rbo);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbufferForRTT);
     
 
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
@@ -261,18 +306,17 @@ const GLubyte grassIndices[] = {
 - (void)compileShaders {
     
     // 使用上面的方法来编译两个shader
-    GLuint vertexShader = [self compileShader:@"SimpleVertex"
-                                     withType:GL_VERTEX_SHADER];
-    GLuint fragmentShader = [self compileShader:@"SimpleFragment"
-                                       withType:GL_FRAGMENT_SHADER];
+    GLuint vertexShader = [self compileShader:@"SimpleVertex" withType:GL_VERTEX_SHADER];
+    GLuint fragmentShader = [self compileShader:@"SimpleFragment" withType:GL_FRAGMENT_SHADER];
     // compile lamp shader program
-    GLuint lampvertexShader = [self compileShader:@"lampVertex"
-                                     withType:GL_VERTEX_SHADER];
-    GLuint lampfragmentShader = [self compileShader:@"lampFragment"
-                                       withType:GL_FRAGMENT_SHADER];
+    GLuint lampvertexShader = [self compileShader:@"lampVertex" withType:GL_VERTEX_SHADER];
+    GLuint lampfragmentShader = [self compileShader:@"lampFragment" withType:GL_FRAGMENT_SHADER];
     //compile screenShader
     GLuint screenVS = [self compileShader:@"postProcessVS" withType:GL_VERTEX_SHADER];
     GLuint screenFS = [self compileShader:@"postProcessFS" withType:GL_FRAGMENT_SHADER];
+    //compile skyBoxShader
+    GLuint skyBoxVS = [self compileShader:@"skyBoxVS" withType:GL_VERTEX_SHADER];
+    GLuint skyBoxFS = [self compileShader:@"skyBoxFS" withType:GL_FRAGMENT_SHADER];
     
     // 调用接下来的func来创建和将shader们连接到program。当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，会得到一个链接错误
     _programHandle = glCreateProgram();
@@ -289,6 +333,11 @@ const GLubyte grassIndices[] = {
     glAttachShader(_screenProgram, screenVS);
     glAttachShader(_screenProgram, screenFS);
     glLinkProgram(_screenProgram);
+    //link sky box shader program
+    _skyBoxProgram = glCreateProgram();
+    glAttachShader(_skyBoxProgram, skyBoxVS);
+    glAttachShader(_skyBoxProgram, skyBoxFS);
+    glLinkProgram(_skyBoxProgram);
     
     // check
     GLint linkSuccess;
@@ -318,6 +367,15 @@ const GLubyte grassIndices[] = {
         NSLog(@"lamp program fail: %@", messageString);
         exit(1);
     }
+    GLint skyBoxLinkSuccess;
+    glGetProgramiv(_skyBoxProgram, GL_LINK_STATUS, &skyBoxLinkSuccess);
+    if (skyBoxLinkSuccess == GL_FALSE) {
+        GLchar messages[256];
+        glGetProgramInfoLog(_skyBoxProgram, sizeof(messages), 0, &messages[0]);
+        NSString *messageString = [NSString stringWithUTF8String:messages];
+        NSLog(@"lamp program fail: %@", messageString);
+        exit(1);
+    }
     
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_programHandle, "Position");
@@ -334,6 +392,11 @@ const GLubyte grassIndices[] = {
     _screenPosSlot = glGetAttribLocation(_screenProgram, "aPos");
     _screenTexCoordSlot = glGetAttribLocation(_screenProgram, "aTexCoords");
     
+    //skybox attrib
+    //////////in shader set: "   layout (location = 0) in vec3 aPos;"
+    //////////_skyPosSlot is "0";
+
+    
     ///////////////////////////////uniforms///////////////////////////
     // Get the uniform model-view matrix slot from program
     _modelSlot = glGetUniformLocation(_programHandle, "model");
@@ -348,7 +411,6 @@ const GLubyte grassIndices[] = {
     _lampTextureUniform = glGetUniformLocation(_lampProgram, "grassTex");
     //////////////////////////////texture uniformslot for screen program
     _screenTextureSlot = glGetUniformLocation(_screenProgram, "screenTexture");
-
 
     ////////////////////////////////
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
@@ -442,9 +504,10 @@ const GLubyte grassIndices[] = {
     viewTgt.z = -1;
 }
 - (void)setupLight{
-
-    material._difsLightingMap = _myTexture;
-    material._spclLightingMap = _myTexture;
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    material._difsLightingMap = 0;
+    material._spclLightingMap = 0;
     material.shininess = 32.0; //init material
 
     dirLight.direction.x = -0.2;
@@ -535,6 +598,35 @@ const GLubyte grassIndices[] = {
     glBindTexture(GL_TEXTURE_2D, 0);
 
     return texName;
+}
+
+- (void)setupCubeMapTexture:(GLuint)cubeText withFile:(NSString *)fileName withType:(GLenum) type{
+    // 1) Get Core Graphics image reference.
+    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
+    if (!spriteImage) {
+        NSLog(@"Failed to load image %@", fileName);
+        exit(1);
+    }
+    // 2) Create Core Graphics bitmap context. 自行分配空间。获取宽高，分配w*h*4字节的空间。（*4: r,g,b,alpha一共四个字节）
+    size_t width = CGImageGetWidth(spriteImage);
+    size_t height = CGImageGetHeight(spriteImage);
+    
+    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
+    
+    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
+    
+    // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
+    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
+    CGContextRelease(spriteContext);
+    
+    // 4) Send the pixel data to OpenGL. gen并bind textureObj。
+
+    glBindTexture(GL_TEXTURE_CUBE_MAP, cubeText);
+    
+    glTexImage2D(type, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData); //load to texture
+    
+    free(spriteData);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
 }
 - (void) setupMaterial: (Material*) material withDfsTexture: (GLuint) texture1 spcTexture: (GLuint) texture2 Shininess: (float) shininess{
     material->_difsLightingMap = texture1;
@@ -643,8 +735,8 @@ const GLubyte grassIndices[] = {
     glBindVertexArray(_grassObj);
     
     glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndexBuffer);
-    
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+
     glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
     glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
     
@@ -667,6 +759,17 @@ const GLubyte grassIndices[] = {
     glEnableVertexAttribArray(_screenTexCoordSlot);
     
     glBindVertexArray(0); //unbind
+    
+    //sky box vao
+    glGenVertexArrays(1, &skyboxVAO);
+    glGenBuffers(1, &skyboxVBO);
+
+    glBindVertexArray(skyboxVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, skyboxVBO);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(skyboxVertices), &skyboxVertices, GL_STATIC_DRAW);
+
+    glEnableVertexAttribArray(0);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
 
 }
 
@@ -710,12 +813,28 @@ const GLubyte grassIndices[] = {
     glBindTexture(GL_TEXTURE_2D, _grassTexture);
     glActiveTexture(GL_TEXTURE6);
     glBindTexture(GL_TEXTURE_2D, _windowTexture);
-    
-    
+
     [self setupMaterial:&metal withDfsTexture:1 spcTexture:1 Shininess:256.0];
     [self setupMaterial:&ground withDfsTexture:2 spcTexture:2 Shininess:8.0];
     [self setupMaterial:&wood withDfsTexture:3 spcTexture:4 Shininess:256.0];
     
+    ////////////////////setup cube map(sky box)
+    glGenTextures(1, &_skyBoxTexture);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"right.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_X];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"left.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_X];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"top.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Y];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"bottom.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Y];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"back.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Z];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"front.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Z];
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
 }
 
 ///////////////////////////////////////////
@@ -848,7 +967,7 @@ const GLubyte grassIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-
+    glEnable(GL_CULL_FACE); //obja need fix
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -922,12 +1041,15 @@ const GLubyte grassIndices[] = {
     glUseProgram(_programHandle);
  
     //set view parameters
+    viewTgt.x = 0.1;
+    viewTgt.y = 0.1;
+    viewTgt.z = 0.0;
     static float viewRotateAngle = 0.33 * E_PI;
     float viewRotateRad = 5.0;
     viewEye.x = viewRotateRad*cosf(viewRotateAngle);
 //    viewEye.x = 2.0f;
 
-    viewEye.y = 1.6;
+    viewEye.y = 0.0;
     viewEye.z = viewRotateRad*sinf(viewRotateAngle);
 //    viewEye.z = 2.0f;
 
@@ -954,7 +1076,32 @@ const GLubyte grassIndices[] = {
 //    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
 //    glBindVertexArray(0);
 //
-    ///////////////////////////////
+    
+    ///////////////////////////////////////////
+    // draw skybox at first
+    glDepthMask(GL_FALSE);
+    glUseProgram(_skyBoxProgram);
+    ////////
+    ksMatrix4 noTranslView;
+    ksMatrixCopy(&noTranslView, &_lookViewMatrix);
+    noTranslView.m[3][0] = 0.0;
+    noTranslView.m[3][1] = 0.0;
+    noTranslView.m[3][2] = 0.0;
+    //////
+
+    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "view"), 1, GL_FALSE, (GLfloat*)&noTranslView.m[0][0]);
+    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "projection"), 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+    // skybox cube
+    glBindVertexArray(skyboxVAO);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+    glUniform1i(glGetUniformLocation(_skyBoxProgram, "skybox"), 0);
+    glDrawArrays(GL_TRIANGLES, 0, 36);
+    glBindVertexArray(0);
+    glDepthMask(GL_TRUE);
+    
+//    ///////////////////////////////
+    glUseProgram(_programHandle);
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(_objectA);
     //applying  texture
@@ -965,7 +1112,7 @@ const GLubyte grassIndices[] = {
     for(unsigned int i = 0; i < 10; i++)
     {
         modelPos = cubePositions[i];
-        
+
         modelRotate.x = 1.0f;
         modelRotate.y = 0.3f;
         modelRotate.z = 0.5f;
@@ -998,6 +1145,7 @@ const GLubyte grassIndices[] = {
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
+    
     ///////////////////////////////////////////////drawing to screen
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
@@ -1007,10 +1155,12 @@ const GLubyte grassIndices[] = {
     glBindVertexArray(_screenObj);
     glDisable(GL_DEPTH_TEST);
     glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, renderedTexture);
+    glBindTexture(GL_TEXTURE_2D, _renderedTexture);
     glUniform1i(_screenTextureSlot, 0);
     glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     glBindVertexArray(0); //unbind
+    
+    
 
 
     //count fps

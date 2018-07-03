@@ -61,7 +61,7 @@ typedef struct {
     GLuint _colorrenderbuffer;
     GLuint _depthStencilRenderBuffer;
     
-    GLuint renderedTexture; //texture target to draw on
+    GLuint _renderedTexture; //texture target to draw on
 
     
     GLuint _textureFrameBuffer; //for render to texture
@@ -80,6 +80,8 @@ typedef struct {
     GLuint _grassTexture;
     GLuint _windowTexture;
     
+    GLuint _skyBoxTexture;
+    
     GLuint _texCoordSlot;
 
     //VAOs are here
@@ -88,6 +90,12 @@ typedef struct {
     GLuint _lampObj;
     GLuint _grassObj;
     GLuint _screenObj;
+    
+    //skybox vao
+    GLuint skyboxVAO;
+    GLuint skyboxVBO;
+    GLuint skyboxIndexbuffer;
+
     
     // every object could use these slots
     GLuint _positionSlot;
@@ -172,6 +180,7 @@ typedef struct {
     GLuint _programHandle; //program be used to render, may have many programs.
     GLuint _lampProgram;
     GLuint _screenProgram; //for rendering from texture
+    GLuint _skyBoxProgram;
     
     ksMatrix4 _modelMatrix;
     ksMatrix4 _projectionMatrix;
