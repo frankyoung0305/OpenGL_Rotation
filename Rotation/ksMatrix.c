@@ -345,18 +345,18 @@ void ksFrustum(ksMatrix4 * result, float left, float right, float bottom, float 
 		return;
 
 	frust.m[0][0] = 2.0f * nearZ / deltaX;
-	frust.m[1][0] = frust.m[2][0] = frust.m[3][0] = 0.0f;
+	frust.m[0][1] = frust.m[0][2] = frust.m[0][3] = 0.0f;
 
 	frust.m[1][1] = 2.0f * nearZ / deltaY;
-	frust.m[0][1] = frust.m[2][1] = frust.m[3][1] = 0.0f;
+	frust.m[1][0] = frust.m[1][2] = frust.m[1][3] = 0.0f;
 
-	frust.m[0][2] = (right + left) / deltaX;
-	frust.m[1][2] = (top + bottom) / deltaY;
+	frust.m[2][0] = (right + left) / deltaX;
+	frust.m[2][1] = (top + bottom) / deltaY;
 	frust.m[2][2] = -(nearZ + farZ) / deltaZ;
-	frust.m[3][2] = -1.0f;
+	frust.m[2][3] = -1.0f;
 
-	frust.m[2][3] = -2.0f * nearZ * farZ / deltaZ;
-	frust.m[0][3] = frust.m[1][3] = frust.m[3][3] = 0.0f;
+	frust.m[3][2] = -2.0f * nearZ * farZ / deltaZ;
+	frust.m[3][0] = frust.m[3][1] = frust.m[3][3] = 0.0f;
 
 	ksMatrixMultiply(result, &frust, result);
 }

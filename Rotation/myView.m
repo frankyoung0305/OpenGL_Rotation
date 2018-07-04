@@ -71,59 +71,59 @@ const Vertex Vertices[] = {
 };
 //ground
 const Vertex groundVert[] = {
-    {{1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, 0}},
-    {{1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, GRD_TEX_COORD_MAX}},
-    {{-1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRD_TEX_COORD_MAX}},
-    {{-1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
+    {{1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, GRD_TEX_COORD_MAX}},
+    {{1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRD_TEX_COORD_MAX}},
+    {{-1, 0, -1}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
+    {{-1, 0, 1}, {1, 1, 0, 1}, {0, 1, 0}, {GRD_TEX_COORD_MAX, 0}},
     
 };
 
 const Vertex grassVert[] = {
-    {{1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {GRASS_TEX_MAX, 0}},
-    {{-1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
-    {{-1, -1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRASS_TEX_MAX}},
-    {{1, -1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {GRASS_TEX_MAX, GRASS_TEX_MAX}},
+    {{1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {GRASS_TEX_MAX, GRASS_TEX_MAX}},
+    {{-1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRASS_TEX_MAX}},
+    {{-1, -1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
+    {{1, -1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {GRASS_TEX_MAX, 0}},
     
 };
 
 float skyboxVertices[] = {
     // positions
-    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f, //front
     -1.0f, -1.0f, -1.0f,
     1.0f, -1.0f, -1.0f,
     1.0f, -1.0f, -1.0f,
     1.0f,  1.0f, -1.0f,
     -1.0f,  1.0f, -1.0f,
     
-    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f, //left
     -1.0f, -1.0f, -1.0f,
     -1.0f,  1.0f, -1.0f,
     -1.0f,  1.0f, -1.0f,
     -1.0f,  1.0f,  1.0f,
     -1.0f, -1.0f,  1.0f,
     
-    1.0f, -1.0f, -1.0f,
+    1.0f, -1.0f, -1.0f, //right
     1.0f, -1.0f,  1.0f,
     1.0f,  1.0f,  1.0f,
     1.0f,  1.0f,  1.0f,
     1.0f,  1.0f, -1.0f,
     1.0f, -1.0f, -1.0f,
     
-    -1.0f, -1.0f,  1.0f,
+    -1.0f, -1.0f,  1.0f, //back
     -1.0f,  1.0f,  1.0f,
     1.0f,  1.0f,  1.0f,
     1.0f,  1.0f,  1.0f,
     1.0f, -1.0f,  1.0f,
     -1.0f, -1.0f,  1.0f,
     
-    -1.0f,  1.0f, -1.0f,
+    -1.0f,  1.0f, -1.0f, //top
     1.0f,  1.0f, -1.0f,
     1.0f,  1.0f,  1.0f,
     1.0f,  1.0f,  1.0f,
     -1.0f,  1.0f,  1.0f,
     -1.0f,  1.0f, -1.0f,
     
-    -1.0f, -1.0f, -1.0f,
+    -1.0f, -1.0f, -1.0f, //bottom
     -1.0f, -1.0f,  1.0f,
     1.0f, -1.0f, -1.0f,
     1.0f, -1.0f, -1.0f,
@@ -564,6 +564,7 @@ const GLubyte grassIndices[] = {
 }
 - (GLuint)setupTexture:(NSString *)fileName {
     // 1) Get Core Graphics image reference.
+    /////当通过CGContextDrawImage绘制图片到一个context中时，如果传入的是UIImage的CGImageRef，因为UIKit和CG坐标系y轴相反，所以图片绘制将会上下颠倒。
     CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
     if (!spriteImage) {
         NSLog(@"Failed to load image %@", fileName);
@@ -577,6 +578,11 @@ const GLubyte grassIndices[] = {
     
     CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
     
+    //2.5 flip image
+    CGContextTranslateCTM(spriteContext, 0, height);
+    CGContextScaleCTM(spriteContext, 1.0, -1.0);
+ 
+
     // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
     CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
     CGContextRelease(spriteContext);
@@ -610,24 +616,27 @@ const GLubyte grassIndices[] = {
     // 2) Create Core Graphics bitmap context. 自行分配空间。获取宽高，分配w*h*4字节的空间。（*4: r,g,b,alpha一共四个字节）
     size_t width = CGImageGetWidth(spriteImage);
     size_t height = CGImageGetHeight(spriteImage);
-    
+
     GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
-    
+
     CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
-    
+
     // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
     CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
     CGContextRelease(spriteContext);
-    
+
     // 4) Send the pixel data to OpenGL. gen并bind textureObj。
 
     glBindTexture(GL_TEXTURE_CUBE_MAP, cubeText);
-    
+
     glTexImage2D(type, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData); //load to texture
-    
+
     free(spriteData);
     glBindTexture(GL_TEXTURE_CUBE_MAP, 0);
+
+    
 }
+
 - (void) setupMaterial: (Material*) material withDfsTexture: (GLuint) texture1 spcTexture: (GLuint) texture2 Shininess: (float) shininess{
     material->_difsLightingMap = texture1;
     material->_spclLightingMap = texture2;
@@ -821,12 +830,12 @@ const GLubyte grassIndices[] = {
     ////////////////////setup cube map(sky box)
     glGenTextures(1, &_skyBoxTexture);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"right.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_X];
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"left.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_X];
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"top.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Y];
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"bottom.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Y];
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"back.jpg" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Z];
-    [self setupCubeMapTexture:_skyBoxTexture withFile:@"front.jpg" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Z];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"right.png" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_X];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"left.png" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_X];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"top.png" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Y];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"bottom.png" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Y];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"back.png" withType:GL_TEXTURE_CUBE_MAP_POSITIVE_Z];
+    [self setupCubeMapTexture:_skyBoxTexture withFile:@"front.png" withType:GL_TEXTURE_CUBE_MAP_NEGATIVE_Z];
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
@@ -1041,19 +1050,20 @@ const GLubyte grassIndices[] = {
     glUseProgram(_programHandle);
  
     //set view parameters
-    viewTgt.x = 0.1;
-    viewTgt.y = 0.1;
-    viewTgt.z = 0.0;
-    static float viewRotateAngle = 0.33 * E_PI;
-    float viewRotateRad = 5.0;
-    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
-//    viewEye.x = 2.0f;
-
+    viewEye.x = 0.0;
     viewEye.y = 0.0;
-    viewEye.z = viewRotateRad*sinf(viewRotateAngle);
-//    viewEye.z = 2.0f;
+    viewEye.z = 0.0;
+//    static float viewRotateAngle = 0.33 * E_PI;
+//    float viewRotateRad = 5.0;
+//    viewTgt.x = viewRotateRad*cosf(viewRotateAngle);
+//    viewTgt.y = -viewRotateRad*sinf(viewRotateAngle);
+//    viewTgt.z = -viewRotateRad*sinf(viewRotateAngle);
+//    viewRotateAngle += 0.01;
+    viewTgt.x = 0.0f;
+    viewTgt.y = 0.0f;
+    viewTgt.z = -1.0f;
 
-    viewRotateAngle += 0.01;
+
     
     [self updateView];
 
@@ -1075,11 +1085,58 @@ const GLubyte grassIndices[] = {
 //    [self updateTransform];
 //    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
 //    glBindVertexArray(0);
-//
+
     
+//    ///////////////////////////////
+//    glUseProgram(_programHandle);
+//    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+//    glBindVertexArray(_objectA);
+//    //applying  texture
+//    //    glActiveTexture(GL_TEXTURE0);
+//    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
+//    material = wood;
+//    [self updateMaterial]; //all cubes using same material
+//    for(unsigned int i = 0; i < 10; i++)
+//    {
+//        modelPos = cubePositions[i];
+//
+//        modelRotate.x = 1.0f;
+//        modelRotate.y = 0.3f;
+//        modelRotate.z = 0.5f;
+//        float angle = 20.0f * i;
+//        _angle = angle;
+//        modelScale.x = 0.5f;
+//        modelScale.y = 0.5f;
+//        modelScale.z = 0.5f;
+//        [self updateTransform];
+//        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+//        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
+//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    }
+//    glBindVertexArray(0);//unbind vao
+
+    //then use lamp program to render grass
+    glUseProgram(_lampProgram);
+    glBindVertexArray(_grassObj);
+    [self updateLampView];
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _grassTexture);
+    for(unsigned int j = 0; j < 4; j++){
+        modelPos = pointLightPositions[j];
+        _angle = 0;
+        modelScale.x = 0.2;
+        modelScale.y = 0.2;
+        modelScale.z = 0.2;
+        modelRotate.x = 0.0;
+        modelRotate.y = 1.0;
+        modelRotate.z = 0.0;
+        [self updateLampTransform];
+        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    }
+    glBindVertexArray(0);//unbind vao
     ///////////////////////////////////////////
-    // draw skybox at first
-    glDepthMask(GL_FALSE);
+    // draw skybox at last
+    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
     glUseProgram(_skyBoxProgram);
     ////////
     ksMatrix4 noTranslView;
@@ -1088,64 +1145,18 @@ const GLubyte grassIndices[] = {
     noTranslView.m[3][1] = 0.0;
     noTranslView.m[3][2] = 0.0;
     //////
-
+    
     glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "view"), 1, GL_FALSE, (GLfloat*)&noTranslView.m[0][0]);
     glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "projection"), 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
     // skybox cube
     glBindVertexArray(skyboxVAO);
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
-    glUniform1i(glGetUniformLocation(_skyBoxProgram, "skybox"), 0);
+//    glUniform1i(glGetUniformLocation(_skyBoxProgram, "skybox"), 0);   //optional, uniform of sampler2D is 0 by defalut
     glDrawArrays(GL_TRIANGLES, 0, 36);
     glBindVertexArray(0);
-    glDepthMask(GL_TRUE);
-    
-//    ///////////////////////////////
-    glUseProgram(_programHandle);
-    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
-    glBindVertexArray(_objectA);
-    //applying  texture
-    //    glActiveTexture(GL_TEXTURE0);
-    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    material = wood;
-    [self updateMaterial]; //all cubes using same material
-    for(unsigned int i = 0; i < 10; i++)
-    {
-        modelPos = cubePositions[i];
+    glDepthFunc(GL_LESS); // set depth function back to default
 
-        modelRotate.x = 1.0f;
-        modelRotate.y = 0.3f;
-        modelRotate.z = 0.5f;
-        float angle = 20.0f * i;
-        _angle = angle;
-        modelScale.x = 0.5f;
-        modelScale.y = 0.5f;
-        modelScale.z = 0.5f;
-        [self updateTransform];
-        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
-        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
-        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    }
-    glBindVertexArray(0);//unbind vao
-
-    //then use lamp program to render lamps
-    glUseProgram(_lampProgram);
-    glBindVertexArray(_lampObj);
-    [self updateLampView];
-    for(unsigned int j = 0; j < 4; j++){
-        modelPos = pointLightPositions[j];
-        _angle = 0;
-        modelScale.x = 0.1;
-        modelScale.y = 0.1;
-        modelScale.z = 0.1;
-        modelRotate.x = 0.0;
-        modelRotate.y = 1.0;
-        modelRotate.z = 0.0;
-        [self updateLampTransform];
-        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    }
-    glBindVertexArray(0);//unbind vao
-    
     ///////////////////////////////////////////////drawing to screen
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
     glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
