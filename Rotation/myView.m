@@ -14,6 +14,7 @@
 #define TEX_COORD_MAX   1
 #define GRD_TEX_COORD_MAX   5
 #define GRASS_TEX_MAX   1
+#define SKY_BOX_SIZE 500
 
 #define E_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 
@@ -88,47 +89,47 @@ const Vertex grassVert[] = {
 
 float skyboxVertices[] = {
     // positions
-    -1.0f,  1.0f, -1.0f, //front
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE, //front
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
     
-    -1.0f, -1.0f,  1.0f, //left
-    -1.0f, -1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f, -1.0f,
-    -1.0f,  1.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f,
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE, //left
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
     
-    1.0f, -1.0f, -1.0f, //right
-    1.0f, -1.0f,  1.0f,
-    1.0f,  1.0f,  1.0f,
-    1.0f,  1.0f,  1.0f,
-    1.0f,  1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE, //right
+    SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
     
-    -1.0f, -1.0f,  1.0f, //back
-    -1.0f,  1.0f,  1.0f,
-    1.0f,  1.0f,  1.0f,
-    1.0f,  1.0f,  1.0f,
-    1.0f, -1.0f,  1.0f,
-    -1.0f, -1.0f,  1.0f,
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE, //back
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
     
-    -1.0f,  1.0f, -1.0f, //top
-    1.0f,  1.0f, -1.0f,
-    1.0f,  1.0f,  1.0f,
-    1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f,  1.0f,
-    -1.0f,  1.0f, -1.0f,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE, //top
+    SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    -SKY_BOX_SIZE,  SKY_BOX_SIZE, -SKY_BOX_SIZE,
     
-    -1.0f, -1.0f, -1.0f, //bottom
-    -1.0f, -1.0f,  1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f,  1.0f,
-    1.0f, -1.0f,  1.0f
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE, //bottom
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE, -SKY_BOX_SIZE,
+    -SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE,
+    SKY_BOX_SIZE, -SKY_BOX_SIZE,  SKY_BOX_SIZE
 };
 
 const GLubyte Indices[] = {
@@ -474,7 +475,7 @@ const GLubyte grassIndices[] = {
 
 - (void)setupProjection{
     _aspect = self.frame.size.width / self.frame.size.height;
-    _sightAngleY = 60; //view y angle in degrees
+    _sightAngleY = 90; //view y angle in degrees
     _nearZ = 1.0f;
     _farZ = 1000.0f;
 }
@@ -984,7 +985,7 @@ const GLubyte grassIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-    glEnable(GL_CULL_FACE); //obja need fix
+    glEnable(GL_CULL_FACE); //
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -1058,18 +1059,32 @@ const GLubyte grassIndices[] = {
     glUseProgram(_programHandle);
  
     //set view parameters
-    viewEye.x = 0.0;
-    viewEye.y = 0.0;
-    viewEye.z = 0.0;
+//    //fixed eye:
+//    viewEye.x = 0.0;
+//    viewEye.y = 0.0;
+//    viewEye.z = 0.0;
 //    static float viewRotateAngle = 0.33 * E_PI;
 //    float viewRotateRad = 5.0;
 //    viewTgt.x = viewRotateRad*cosf(viewRotateAngle);
-//    viewTgt.y = -viewRotateRad*sinf(viewRotateAngle);
+////    viewTgt.y = -viewRotateRad*sinf(viewRotateAngle);
+//    viewTgt.y = 0.0f;
 //    viewTgt.z = -viewRotateRad*sinf(viewRotateAngle);
 //    viewRotateAngle += 0.01;
-    viewTgt.x = 0;
-    viewTgt.y = 0;
-    viewTgt.z = -1;
+
+    
+    
+//    fixed target:
+    viewTgt.x = 0.0;
+    viewTgt.y = 0.0;
+    viewTgt.z = 0.0;
+    static float viewRotateAngle = 0.33 * E_PI;
+    float viewRotateRad = 15.0;
+    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
+    viewTgt.y = 0.0f;
+//    viewEye.y = -viewRotateRad*sinf(viewRotateAngle);
+    viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
+    viewRotateAngle += 0.01;
+
 
 
     
@@ -1095,53 +1110,60 @@ const GLubyte grassIndices[] = {
 //    glBindVertexArray(0);
 
     
-//    ///////////////////////////////
-//    glUseProgram(_programHandle);
-//    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
-//    glBindVertexArray(_objectA);
-//    //applying  texture
-//    //    glActiveTexture(GL_TEXTURE0);
-//    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    ///////////////////////////////
+    glUseProgram(_programHandle);
+    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+    glBindVertexArray(_objectA);
+    //applying  texture
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
 //    material = wood;
 //    [self updateMaterial]; //all cubes using same material
-//    for(unsigned int i = 0; i < 10; i++)
-//    {
-//        modelPos = cubePositions[i];
-//
-//        modelRotate.x = 1.0f;
-//        modelRotate.y = 0.3f;
-//        modelRotate.z = 0.5f;
-//        float angle = 20.0f * i;
-//        _angle = angle;
-//        modelScale.x = 0.5f;
-//        modelScale.y = 0.5f;
-//        modelScale.z = 0.5f;
-//        [self updateTransform];
-//        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
-//        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
-//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-//    }
-//    glBindVertexArray(0);//unbind vao
+    
+    //use sky box texture to perform environment reflection
+    glActiveTexture(GL_TEXTURE8);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+    glUniform1i(glGetUniformLocation(_programHandle, "skybox"), 8);
+    /////
+    
+    for(unsigned int i = 0; i < 10; i++)
+    {
+        modelPos = cubePositions[i];
 
-    //then use lamp program to render grass
-    glUseProgram(_lampProgram);
-    glBindVertexArray(_grassObj);
-    [self updateLampView];
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _grassTexture);
-    for(unsigned int j = 0; j < 4; j++){
-        modelPos = pointLightPositions[j];
-        _angle = 0;
-        modelScale.x = 0.2;
-        modelScale.y = 0.2;
-        modelScale.z = 0.2;
-        modelRotate.x = 0.0;
-        modelRotate.y = 1.0;
-        modelRotate.z = 0.0;
-        [self updateLampTransform];
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
+        float angle = 20.0f * i;
+        _angle = angle;
+        modelScale.x = 0.5f;
+        modelScale.y = 0.5f;
+        modelScale.z = 0.5f;
+        [self updateTransform];
+        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
         glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
     }
     glBindVertexArray(0);//unbind vao
+//
+//    //then use lamp program to render grass
+//    glUseProgram(_lampProgram);
+//    glBindVertexArray(_grassObj);
+//    [self updateLampView];
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _grassTexture);
+//    for(unsigned int j = 0; j < 4; j++){
+//        modelPos = pointLightPositions[j];
+//        _angle = 0;
+//        modelScale.x = 0.2;
+//        modelScale.y = 0.2;
+//        modelScale.z = 0.2;
+//        modelRotate.x = 0.0;
+//        modelRotate.y = 1.0;
+//        modelRotate.z = 0.0;
+//        [self updateLampTransform];
+//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    }
+//    glBindVertexArray(0);//unbind vao
     ///////////////////////////////////////////
     // draw skybox at last
     glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content

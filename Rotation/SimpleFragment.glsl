@@ -56,22 +56,29 @@ uniform SpotLight spotLight;
 uniform DirLight dirLight;
 uniform PointLight pointLights[NR_POINT_LIGHTS];
 
+uniform samplerCube skybox;
+
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir);
 vec3 CalcPointLight(PointLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 vec3 CalcSpotLight(SpotLight light, vec3 normal, vec3 fragPos, vec3 viewDir);
 
 void main(void) {
-    vec3 norm = normalize(fragNormal);
-    vec3 viewDir = normalize(eyePos - worldPos);
-
-    vec3 result = CalcDirLight(dirLight, norm, viewDir);
-
-    for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        result += CalcPointLight(pointLights[i], norm, worldPos, viewDir);
-
-    result += CalcSpotLight(spotLight, norm, worldPos, viewDir);
-
-    FragColor = vec4(result, 1.0) ;
+//    vec3 norm = normalize(fragNormal);
+//    vec3 viewDir = normalize(eyePos - worldPos);
+//
+//    vec3 result = CalcDirLight(dirLight, norm, viewDir);
+//
+//    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+//        result += CalcPointLight(pointLights[i], norm, worldPos, viewDir);
+//
+//    result += CalcSpotLight(spotLight, norm, worldPos, viewDir);
+//
+//    FragColor = vec4(result, 1.0) ;
+    
+    //environment reflection
+    vec3 I = normalize(worldPos - eyePos);
+    vec3 R = reflect(I, normalize(fragNormal));
+    FragColor = vec4(texture(skybox, R).rgb, 1.0);
 }
 
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)

@@ -17,12 +17,6 @@
 		3C50C00D20E6125B00F556DE /* window.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C00C20E6125B00F556DE /* window.png */; };
 		3C50C00F20EA2C9400F556DE /* postProcessVS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C00E20EA2C9400F556DE /* postProcessVS.glsl */; };
 		3C50C01120EA2CA800F556DE /* postProcessFS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01020EA2CA800F556DE /* postProcessFS.glsl */; };
-		3C50C01820EB252A00F556DE /* top.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01220EB252900F556DE /* top.jpg */; };
-		3C50C01920EB252A00F556DE /* bottom.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01320EB252A00F556DE /* bottom.jpg */; };
-		3C50C01A20EB252A00F556DE /* front.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01420EB252A00F556DE /* front.jpg */; };
-		3C50C01B20EB252A00F556DE /* back.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01520EB252A00F556DE /* back.jpg */; };
-		3C50C01C20EB252A00F556DE /* right.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01620EB252A00F556DE /* right.jpg */; };
-		3C50C01D20EB252A00F556DE /* left.jpg in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01720EB252A00F556DE /* left.jpg */; };
 		3C50C01F20EB254C00F556DE /* skyBoxVS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C01E20EB254C00F556DE /* skyBoxVS.glsl */; };
 		3C50C02120EB256D00F556DE /* skyBoxFS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02020EB256D00F556DE /* skyBoxFS.glsl */; };
 		3C50C02820EC9B1C00F556DE /* front.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02220EC9B1B00F556DE /* front.png */; };
@@ -75,12 +69,6 @@
 		3C50C00C20E6125B00F556DE /* window.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = window.png; sourceTree = "<group>"; };
 		3C50C00E20EA2C9400F556DE /* postProcessVS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = postProcessVS.glsl; sourceTree = "<group>"; };
 		3C50C01020EA2CA800F556DE /* postProcessFS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = postProcessFS.glsl; sourceTree = "<group>"; };
-		3C50C01220EB252900F556DE /* top.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = top.jpg; sourceTree = "<group>"; };
-		3C50C01320EB252A00F556DE /* bottom.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = bottom.jpg; sourceTree = "<group>"; };
-		3C50C01420EB252A00F556DE /* front.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = front.jpg; sourceTree = "<group>"; };
-		3C50C01520EB252A00F556DE /* back.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = back.jpg; sourceTree = "<group>"; };
-		3C50C01620EB252A00F556DE /* right.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = right.jpg; sourceTree = "<group>"; };
-		3C50C01720EB252A00F556DE /* left.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = left.jpg; sourceTree = "<group>"; };
 		3C50C01E20EB254C00F556DE /* skyBoxVS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = skyBoxVS.glsl; sourceTree = "<group>"; };
 		3C50C02020EB256D00F556DE /* skyBoxFS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = skyBoxFS.glsl; sourceTree = "<group>"; };
 		3C50C02220EC9B1B00F556DE /* front.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = front.png; sourceTree = "<group>"; };
@@ -170,12 +158,6 @@
 				3C50C02420EC9B1C00F556DE /* right.png */,
 				3C50C02520EC9B1C00F556DE /* left.png */,
 				3C50C02620EC9B1C00F556DE /* top.png */,
-				3C50C01520EB252A00F556DE /* back.jpg */,
-				3C50C01320EB252A00F556DE /* bottom.jpg */,
-				3C50C01420EB252A00F556DE /* front.jpg */,
-				3C50C01720EB252A00F556DE /* left.jpg */,
-				3C50C01620EB252A00F556DE /* right.jpg */,
-				3C50C01220EB252900F556DE /* top.jpg */,
 				3C50C00C20E6125B00F556DE /* window.png */,
 				3C0256F320E48DB30001EF0D /* grass.png */,
 				3C308B2B20D3905C007E65DF /* frame.png */,
@@ -331,20 +313,16 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				3C50C01D20EB252A00F556DE /* left.jpg in Resources */,
 				3C50C02C20EC9B1C00F556DE /* top.png in Resources */,
-				3C50C01920EB252A00F556DE /* bottom.jpg in Resources */,
 				3C50C02A20EC9B1C00F556DE /* right.png in Resources */,
 				3C50C01120EA2CA800F556DE /* postProcessFS.glsl in Resources */,
 				3C50C01F20EB254C00F556DE /* skyBoxVS.glsl in Resources */,
 				3C50C02920EC9B1C00F556DE /* bottom.png in Resources */,
 				3C50C02B20EC9B1C00F556DE /* left.png in Resources */,
 				3C308B2620D21946007E65DF /* metal.png in Resources */,
-				3C50C01A20EB252A00F556DE /* front.jpg in Resources */,
 				3C50C02120EB256D00F556DE /* skyBoxFS.glsl in Resources */,
 				3CA65F7320C92C1D00B58A6A /* pic.png in Resources */,
 				3C308B2A20D24E7E007E65DF /* wood.png in Resources */,
-				3C50C01C20EB252A00F556DE /* right.jpg in Resources */,
 				3C308B2C20D3905D007E65DF /* frame.png in Resources */,
 				3C93740720C41E3E00A48C10 /* LaunchScreen.storyboard in Resources */,
 				3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */,
@@ -355,12 +333,10 @@
 				3C27268720DB443B00D7B4AD /* lampFragment.glsl in Resources */,
 				3C50C00D20E6125B00F556DE /* window.png in Resources */,
 				3C5FBEC020C56B0F002CB0B7 /* SimpleFragment.glsl in Resources */,
-				3C50C01B20EB252A00F556DE /* back.jpg in Resources */,
 				3C50C00F20EA2C9400F556DE /* postProcessVS.glsl in Resources */,
 				3C50C02D20EC9B1C00F556DE /* back.png in Resources */,
 				3C27268920DB479D00D7B4AD /* lampVertex.glsl in Resources */,
 				3C50C02820EC9B1C00F556DE /* front.png in Resources */,
-				3C50C01820EB252A00F556DE /* top.jpg in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
