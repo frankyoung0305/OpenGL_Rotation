@@ -27,8 +27,8 @@
 		3C50C02120EB256D00F556DE /* skyBoxFS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02020EB256D00F556DE /* skyBoxFS.glsl */; };
 		3C50C02820EC9B1C00F556DE /* front.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02220EC9B1B00F556DE /* front.png */; };
 		3C50C02920EC9B1C00F556DE /* bottom.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02320EC9B1C00F556DE /* bottom.png */; };
-		3C50C02A20EC9B1C00F556DE /* left.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02420EC9B1C00F556DE /* left.png */; };
-		3C50C02B20EC9B1C00F556DE /* right.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02520EC9B1C00F556DE /* right.png */; };
+		3C50C02A20EC9B1C00F556DE /* right.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02420EC9B1C00F556DE /* right.png */; };
+		3C50C02B20EC9B1C00F556DE /* left.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02520EC9B1C00F556DE /* left.png */; };
 		3C50C02C20EC9B1C00F556DE /* top.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02620EC9B1C00F556DE /* top.png */; };
 		3C50C02D20EC9B1C00F556DE /* back.png in Resources */ = {isa = PBXBuildFile; fileRef = 3C50C02720EC9B1C00F556DE /* back.png */; };
 		3C5FBEBE20C56834002CB0B7 /* SimpleVertex.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3C5FBEBD20C56834002CB0B7 /* SimpleVertex.glsl */; };
@@ -85,8 +85,8 @@
 		3C50C02020EB256D00F556DE /* skyBoxFS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = skyBoxFS.glsl; sourceTree = "<group>"; };
 		3C50C02220EC9B1B00F556DE /* front.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = front.png; sourceTree = "<group>"; };
 		3C50C02320EC9B1C00F556DE /* bottom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = bottom.png; sourceTree = "<group>"; };
-		3C50C02420EC9B1C00F556DE /* left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = left.png; sourceTree = "<group>"; };
-		3C50C02520EC9B1C00F556DE /* right.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = right.png; sourceTree = "<group>"; };
+		3C50C02420EC9B1C00F556DE /* right.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = right.png; sourceTree = "<group>"; };
+		3C50C02520EC9B1C00F556DE /* left.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = left.png; sourceTree = "<group>"; };
 		3C50C02620EC9B1C00F556DE /* top.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = top.png; sourceTree = "<group>"; };
 		3C50C02720EC9B1C00F556DE /* back.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = back.png; sourceTree = "<group>"; };
 		3C5FBEBC20C54767002CB0B7 /* myView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = myView.h; sourceTree = "<group>"; };
@@ -167,8 +167,8 @@
 				3C50C02720EC9B1C00F556DE /* back.png */,
 				3C50C02320EC9B1C00F556DE /* bottom.png */,
 				3C50C02220EC9B1B00F556DE /* front.png */,
-				3C50C02420EC9B1C00F556DE /* left.png */,
-				3C50C02520EC9B1C00F556DE /* right.png */,
+				3C50C02420EC9B1C00F556DE /* right.png */,
+				3C50C02520EC9B1C00F556DE /* left.png */,
 				3C50C02620EC9B1C00F556DE /* top.png */,
 				3C50C01520EB252A00F556DE /* back.jpg */,
 				3C50C01320EB252A00F556DE /* bottom.jpg */,
@@ -334,11 +334,11 @@
 				3C50C01D20EB252A00F556DE /* left.jpg in Resources */,
 				3C50C02C20EC9B1C00F556DE /* top.png in Resources */,
 				3C50C01920EB252A00F556DE /* bottom.jpg in Resources */,
-				3C50C02A20EC9B1C00F556DE /* left.png in Resources */,
+				3C50C02A20EC9B1C00F556DE /* right.png in Resources */,
 				3C50C01120EA2CA800F556DE /* postProcessFS.glsl in Resources */,
 				3C50C01F20EB254C00F556DE /* skyBoxVS.glsl in Resources */,
 				3C50C02920EC9B1C00F556DE /* bottom.png in Resources */,
-				3C50C02B20EC9B1C00F556DE /* right.png in Resources */,
+				3C50C02B20EC9B1C00F556DE /* left.png in Resources */,
 				3C308B2620D21946007E65DF /* metal.png in Resources */,
 				3C50C01A20EB252A00F556DE /* front.jpg in Resources */,
 				3C50C02120EB256D00F556DE /* skyBoxFS.glsl in Resources */,

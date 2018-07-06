@@ -578,7 +578,7 @@ const GLubyte grassIndices[] = {
     
     CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
     
-    //2.5 flip image
+    //2.5 flip image along y axis
     CGContextTranslateCTM(spriteContext, 0, height);
     CGContextScaleCTM(spriteContext, 1.0, -1.0);
  
@@ -621,6 +621,14 @@ const GLubyte grassIndices[] = {
 
     CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4, CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
 
+    //2.5 flip image along x axis
+    //input pic CGImage: p
+    //draw to CGContext data: d (auto flip y, and we flip x)
+    //give to glTexImage2D: d
+    //display on screen: p
+    CGContextTranslateCTM(spriteContext, width, 0);
+    CGContextScaleCTM(spriteContext, -1.0, 1.0);
+//
     // 3) Draw the image into the context. 在指定矩形中绘制image，画完之后可以释放context.（存储在data中）
     CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
     CGContextRelease(spriteContext);
@@ -1059,9 +1067,9 @@ const GLubyte grassIndices[] = {
 //    viewTgt.y = -viewRotateRad*sinf(viewRotateAngle);
 //    viewTgt.z = -viewRotateRad*sinf(viewRotateAngle);
 //    viewRotateAngle += 0.01;
-    viewTgt.x = 0.0f;
-    viewTgt.y = 0.0f;
-    viewTgt.z = -1.0f;
+    viewTgt.x = 0;
+    viewTgt.y = 0;
+    viewTgt.z = -1;
 
 
     
