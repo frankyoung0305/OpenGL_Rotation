@@ -75,9 +75,15 @@ void main(void) {
 //
 //    FragColor = vec4(result, 1.0) ;
     
-    //environment reflection
+//    //environment reflection
+//    vec3 I = normalize(worldPos - eyePos);
+//    vec3 R = reflect(I, normalize(fragNormal));
+//    FragColor = vec4(texture(skybox, R).rgb, 1.0);
+    
+    //environment refraction
+    float ratio = 1.00 / 1.52;
     vec3 I = normalize(worldPos - eyePos);
-    vec3 R = reflect(I, normalize(fragNormal));
+    vec3 R = refract(I, normalize(fragNormal), ratio);
     FragColor = vec4(texture(skybox, R).rgb, 1.0);
 }
 
