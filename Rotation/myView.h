@@ -66,6 +66,11 @@ typedef struct {
     
     GLuint _textureFrameBuffer; //for render to texture
     
+    GLuint mMSAARenderbuffer;// for MSAA
+    GLuint mMSAADepthRenderbuffer;
+    GLuint mMSAAFramebuffer; //for MSAA
+    
+    
     GLuint vertexBuffer;
     GLuint indexBuffer;
     GLuint positionBuffer;

@@ -207,6 +207,7 @@ const GLubyte grassIndices[] = {
 
 
 - (void)setupFrameBuffer {
+    //draw fbo(single-sampled framebuffer)
     glGenFramebuffers(1, &_framebuffer);
     // 设置为当前 framebuffer
     glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
@@ -251,11 +252,36 @@ const GLubyte grassIndices[] = {
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
     glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbufferForRTT);
     
-
+    
+    
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
     if(status != GL_FRAMEBUFFER_COMPLETE)
         NSLog(@"texture frame buffer assembling ERROR: %x \n", status);
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  //unbind texture frame buffer
+    
+    /////msaa fbo setup:
+    // The following is MSAA settings
+    glGenFramebuffers(1, &mMSAAFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFramebuffer);
+    
+    glGenRenderbuffers(1, &mMSAARenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderbuffer);
+    // 4 samples for color
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, self.frame.size.width, self.frame.size.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMSAARenderbuffer);
+    
+    glGenRenderbuffers(1, &mMSAADepthRenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, mMSAADepthRenderbuffer);
+    // 4 samples for depth
+    glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT16, self.frame.size.width, self.frame.size.height);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mMSAADepthRenderbuffer);
+    
+    // Test the framebuffer for completeness.
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        NSLog(@"failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+    }
+
 ////////////////////////////////////////////////////////////
 }
 - (void)destoryRenderAndFrameBuffer
@@ -1018,7 +1044,7 @@ const GLubyte grassIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-    glEnable(GL_CULL_FACE); //
+//    glEnable(GL_CULL_FACE); //
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
@@ -1081,7 +1107,12 @@ const GLubyte grassIndices[] = {
 //////////////////////////////////////////////////////////////////////////////////////////
 
 - (void)render {  //render func for shader
-    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);// render to texture
+//    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);// render to texture
+    
+    /////////////////////////render to MSAA fbo
+    glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFramebuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderbuffer);
+    ///////////////////////
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
@@ -1117,9 +1148,9 @@ const GLubyte grassIndices[] = {
     viewTgt.y = 0.0;
     viewTgt.z = 0.0;
     static float viewRotateAngle = 0.33 * E_PI;
-    float viewRotateRad = 15.0;
+    float viewRotateRad = 3.0;
     viewEye.x = viewRotateRad*cosf(viewRotateAngle);
-    viewTgt.y = 0.0f;
+    viewTgt.y     = 0.0f;
 //    viewEye.y = -viewRotateRad*sinf(viewRotateAngle);
     viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
     viewRotateAngle += 0.01;
@@ -1230,20 +1261,33 @@ const GLubyte grassIndices[] = {
     glBindVertexArray(0);
     glDepthFunc(GL_LESS); // set depth function back to default
 
-    ///////////////////////////////////////////////drawing to screen
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
-    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
-    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//
+//    ///////////////////////////////////////////////drawing to screen
+//    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+//    glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+//    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//
+//
+//    glUseProgram(_screenProgram);
+//    glBindVertexArray(_screenObj);
+//    glDisable(GL_DEPTH_TEST);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _renderedTexture);
+//    glUniform1i(_screenTextureSlot, 0);
+//    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    glBindVertexArray(0); //unbind
+//
     
-    glUseProgram(_screenProgram);
-    glBindVertexArray(_screenObj);
-    glDisable(GL_DEPTH_TEST);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _renderedTexture);
-    glUniform1i(_screenTextureSlot, 0);
-    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    glBindVertexArray(0); //unbind
+    ////////////////////////////////////////////copy MSAA fbo to screen fbo
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _framebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, mMSAAFramebuffer);
+    // OpenGL ES3.0 Core multisampling
     
+    // Discard the depth buffer from the read fbo. It is no more necessary.
+    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_DEPTH_ATTACHMENT});
+    
+    // Copy the read fbo(multisampled framebuffer) to the draw fbo(single-sampled framebuffer)
+    glBlitFramebuffer(0, 0, self.frame.size.width, self.frame.size.height, 0, 0, self.frame.size.width, self.frame.size.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+    
+    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_COLOR_ATTACHMENT0});
     
 
 
