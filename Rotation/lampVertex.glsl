@@ -6,9 +6,14 @@ in vec4 SourceColor;
 in vec2 TexCoordIn;
 in vec3 normal;
 
-uniform mat4 projection;
+//uniform mat4 projection;
 uniform mat4 model;
-uniform mat4 lookView;
+//uniform mat4 lookView;
+layout (std140) uniform Matrices  //use uniform block
+{
+    mat4 projection;
+    mat4 lookView;
+};
 
 out vec2 TexCoordOut;
 

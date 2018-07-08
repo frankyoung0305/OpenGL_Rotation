@@ -235,7 +235,7 @@ const GLubyte grassIndices[] = {
     // Give an empty image to OpenGL ( the last "0" )
     glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, self.frame.size.width, self.frame.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-    // Poor filtering. Needed !最近取样（方块风格
+    // Poor filtering. Needed !最近取样（
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
@@ -402,13 +402,13 @@ const GLubyte grassIndices[] = {
     // Get the uniform model-view matrix slot from program
     _modelSlot = glGetUniformLocation(_programHandle, "model");
     // Get the uniform projection matrix slot from program
-    _projectionSlot = glGetUniformLocation(_programHandle, "projection");
+//    _projectionSlot = glGetUniformLocation(_programHandle, "projection");
     // Get the uniform view matrix slot from program
-    _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
+//    _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
     ///////////////////////////mvp mat slot setup for lamp
     _lampModelSlot = glGetUniformLocation(_lampProgram, "model");
-    _lampProjectionSlot = glGetUniformLocation(_lampProgram, "projection");
-    _lampLookViewSlot = glGetUniformLocation(_lampProgram, "lookView");
+//    _lampProjectionSlot = glGetUniformLocation(_lampProgram, "projection");
+//    _lampLookViewSlot = glGetUniformLocation(_lampProgram, "lookView");
     _lampTextureUniform = glGetUniformLocation(_lampProgram, "grassTex");
     //////////////////////////////texture uniformslot for screen program
     _screenTextureSlot = glGetUniformLocation(_screenProgram, "screenTexture");
@@ -467,7 +467,6 @@ const GLubyte grassIndices[] = {
     _pointLightConstSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].constant");
     _pointLightLinearSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].linear");
     _pointLightQuadSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].quadratic");
-    
     
 }
 
@@ -803,6 +802,27 @@ const GLubyte grassIndices[] = {
     [self setupFrameBuffer];
 
     [self compileShaders];
+    ///////////////////////use uniform block
+    
+    //1. bind uniform block to binding 0
+    GLuint uniformBlockIndexSkyBox = glGetUniformBlockIndex(_skyBoxProgram, "Matrices");
+    GLuint uniformBlockIndexMainProgram = glGetUniformBlockIndex(_programHandle, "Matrices");
+    GLuint uniformBlockIndexLamp = glGetUniformBlockIndex(_lampProgram, "Matrices");
+    glUniformBlockBinding(_skyBoxProgram, uniformBlockIndexSkyBox, 0);
+    glUniformBlockBinding(_programHandle, uniformBlockIndexMainProgram, 0);
+    glUniformBlockBinding(_lampProgram, uniformBlockIndexLamp, 0);
+
+    //2. init a ubo, bind ubo to binding 0
+    glGenBuffers(1, &uboMatrices);
+    
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferData(GL_UNIFORM_BUFFER, 2 * sizeof(ksMatrix4), NULL, GL_STATIC_DRAW); //setup buffer
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    
+    glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(ksMatrix4)); //binding
+
+
+    
     
     [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
     [self setupVAO];
@@ -869,11 +889,11 @@ const GLubyte grassIndices[] = {
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
     
     // Load projection matrix(传送数据)
-    glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+//    glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
 }
 - (void)updateLampProjection{
     //lamp use same projection mat
-    glUniformMatrix4fv(_lampProjectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+//    glUniformMatrix4fv(_lampProjectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
 }
 - (void)updateTransform
 {
@@ -916,12 +936,12 @@ const GLubyte grassIndices[] = {
     //视角，长宽比，近平面距离，远平面距离
     ksLookAt(&_lookViewMatrix, &viewEye, &viewTgt, &up);
     // Load projection matrix(传送数据)
-    glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+//    glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
     //load eye position uniform
     glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
 - (void)updateLampView{
-    glUniformMatrix4fv(_lampLookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+//    glUniformMatrix4fv(_lampLookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
 }
 - (void) updateLight{
     //update directional light para
@@ -1032,6 +1052,12 @@ const GLubyte grassIndices[] = {
     viewTgt.z = 0;
     [self updateView];
     [self updateProjection];// 更新投影矩阵
+    
+    //update data in the ubo
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ksMatrix4), (GLfloat*)&_projectionMatrix.m[0][0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
 
     //then setup lamp program
     glUseProgram(_lampProgram);
@@ -1085,7 +1111,10 @@ const GLubyte grassIndices[] = {
     viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
     viewRotateAngle += 0.01;
 
-
+/////use ubo to update view mat
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(ksMatrix4), sizeof(ksMatrix4), (GLvoid*)&_lookViewMatrix.m[0][0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
     
     [self updateView];
@@ -1169,15 +1198,15 @@ const GLubyte grassIndices[] = {
     glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
     glUseProgram(_skyBoxProgram);
     ////////
-    ksMatrix4 noTranslView;
-    ksMatrixCopy(&noTranslView, &_lookViewMatrix);
-    noTranslView.m[3][0] = 0.0;
-    noTranslView.m[3][1] = 0.0;
-    noTranslView.m[3][2] = 0.0;
+//    ksMatrix4 noTranslView;
+//    ksMatrixCopy(&noTranslView, &_lookViewMatrix);
+//    noTranslView.m[3][0] = 0.0;
+//    noTranslView.m[3][1] = 0.0;
+//    noTranslView.m[3][2] = 0.0;
     //////
     
-    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "view"), 1, GL_FALSE, (GLfloat*)&noTranslView.m[0][0]);
-    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "projection"), 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+//    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "view"), 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+//    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "projection"), 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
     // skybox cube
     glBindVertexArray(skyboxVAO);
     glActiveTexture(GL_TEXTURE0);

@@ -233,6 +233,9 @@ typedef struct {
     SpotLight spotLight;
     DirLight dirLight;
     PointLight pointLight;
+    
+//ubo
+    GLuint uboMatrices;
 }
 
 + (Class)layerClass; //overwrite func layerClass
