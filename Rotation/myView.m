@@ -415,58 +415,58 @@ const GLubyte grassIndices[] = {
 
     ////////////////////////////////
     _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
-    
-    _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
-    _specularMapSlot = glGetUniformLocation(_programHandle, "material.specular");
-    _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
-   //light slot init
-    _spotLightPositionSlot = glGetUniformLocation(_programHandle, "spotLight.position");
-    _spotLightDircSlot = glGetUniformLocation(_programHandle, "spotLight.direction");
-    _spotLightAmbientSlot = glGetUniformLocation(_programHandle, "spotLight.ambient");
-    _spotLightDiffuseSlot = glGetUniformLocation(_programHandle, "spotLight.diffuse");
-    _spotLightSpecularSlot = glGetUniformLocation(_programHandle, "spotLight.specular");
-    _spotLightConstantSlot = glGetUniformLocation(_programHandle, "spotLight.constant");
-    _spotLightLinearSlot = glGetUniformLocation(_programHandle, "spotLight.linear");
-    _spotLightQuadraticSlot = glGetUniformLocation(_programHandle, "spotLight.quadratic");
-    _spotLightCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.cutOff");
-    _spotLightOuterCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.outerCutOff");
-    //directional light slots init
-    _dirLightDircSlot = glGetUniformLocation(_programHandle, "dirLight.direction");
-    _dirLightAmbntSlot = glGetUniformLocation(_programHandle, "dirLight.ambient");
-    _dirLightDifsSlot = glGetUniformLocation(_programHandle, "dirLight.diffuse");
-    _dirLightSpclSlot = glGetUniformLocation(_programHandle, "dirLight.specular");
-    //point light slots init
-    _pointLightPosSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].position");
-    _pointLightAmbntSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].ambient");
-    _pointLightDifsSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].diffuse");
-    _pointLightSpclSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].specular");
-    _pointLightConstSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].constant");
-    _pointLightLinearSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].linear");
-    _pointLightQuadSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].quadratic");
-    
-    _pointLightPosSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].position");
-    _pointLightAmbntSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].ambient");
-    _pointLightDifsSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].diffuse");
-    _pointLightSpclSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].specular");
-    _pointLightConstSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].constant");
-    _pointLightLinearSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].linear");
-    _pointLightQuadSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].quadratic");
-    
-    _pointLightPosSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].position");
-    _pointLightAmbntSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].ambient");
-    _pointLightDifsSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].diffuse");
-    _pointLightSpclSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].specular");
-    _pointLightConstSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].constant");
-    _pointLightLinearSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].linear");
-    _pointLightQuadSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].quadratic");
-    
-    _pointLightPosSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].position");
-    _pointLightAmbntSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].ambient");
-    _pointLightDifsSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].diffuse");
-    _pointLightSpclSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].specular");
-    _pointLightConstSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].constant");
-    _pointLightLinearSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].linear");
-    _pointLightQuadSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].quadratic");
+//
+//    _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
+//    _specularMapSlot = glGetUniformLocation(_programHandle, "material.specular");
+//    _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
+//   //light slot init
+//    _spotLightPositionSlot = glGetUniformLocation(_programHandle, "spotLight.position");
+//    _spotLightDircSlot = glGetUniformLocation(_programHandle, "spotLight.direction");
+//    _spotLightAmbientSlot = glGetUniformLocation(_programHandle, "spotLight.ambient");
+//    _spotLightDiffuseSlot = glGetUniformLocation(_programHandle, "spotLight.diffuse");
+//    _spotLightSpecularSlot = glGetUniformLocation(_programHandle, "spotLight.specular");
+//    _spotLightConstantSlot = glGetUniformLocation(_programHandle, "spotLight.constant");
+//    _spotLightLinearSlot = glGetUniformLocation(_programHandle, "spotLight.linear");
+//    _spotLightQuadraticSlot = glGetUniformLocation(_programHandle, "spotLight.quadratic");
+//    _spotLightCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.cutOff");
+//    _spotLightOuterCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.outerCutOff");
+//    //directional light slots init
+//    _dirLightDircSlot = glGetUniformLocation(_programHandle, "dirLight.direction");
+//    _dirLightAmbntSlot = glGetUniformLocation(_programHandle, "dirLight.ambient");
+//    _dirLightDifsSlot = glGetUniformLocation(_programHandle, "dirLight.diffuse");
+//    _dirLightSpclSlot = glGetUniformLocation(_programHandle, "dirLight.specular");
+//    //point light slots init
+//    _pointLightPosSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].position");
+//    _pointLightAmbntSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].ambient");
+//    _pointLightDifsSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].diffuse");
+//    _pointLightSpclSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].specular");
+//    _pointLightConstSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].constant");
+//    _pointLightLinearSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].linear");
+//    _pointLightQuadSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].quadratic");
+//
+//    _pointLightPosSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].position");
+//    _pointLightAmbntSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].ambient");
+//    _pointLightDifsSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].diffuse");
+//    _pointLightSpclSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].specular");
+//    _pointLightConstSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].constant");
+//    _pointLightLinearSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].linear");
+//    _pointLightQuadSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].quadratic");
+//
+//    _pointLightPosSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].position");
+//    _pointLightAmbntSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].ambient");
+//    _pointLightDifsSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].diffuse");
+//    _pointLightSpclSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].specular");
+//    _pointLightConstSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].constant");
+//    _pointLightLinearSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].linear");
+//    _pointLightQuadSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].quadratic");
+//
+//    _pointLightPosSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].position");
+//    _pointLightAmbntSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].ambient");
+//    _pointLightDifsSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].diffuse");
+//    _pointLightSpclSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].specular");
+//    _pointLightConstSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].constant");
+//    _pointLightLinearSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].linear");
+//    _pointLightQuadSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].quadratic");
     
 }
 
@@ -503,65 +503,65 @@ const GLubyte grassIndices[] = {
     viewTgt.y = 0;
     viewTgt.z = -1;
 }
-- (void)setupLight{
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    material._difsLightingMap = 0;
-    material._spclLightingMap = 0;
-    material.shininess = 32.0; //init material
-
-    dirLight.direction.x = -0.2;
-    dirLight.direction.y = -1.0;
-    dirLight.direction.z = -0.3;
-    dirLight.ambient.x = 0.1;
-    dirLight.ambient.y = 0.1;
-    dirLight.ambient.z = 0.1;
-    dirLight.diffuse.x = 0.3;
-    dirLight.diffuse.y = 0.3;
-    dirLight.diffuse.z = 0.3;
-    dirLight.specular.x = 0.7;
-    dirLight.specular.y = 0.7;
-    dirLight.specular.z = 0.7;
-    
-    //paras for all point lights (except for pos)
-    pointLight.ambient.x = 0.05f;
-    pointLight.ambient.y = 0.05f;
-    pointLight.ambient.z = 0.05f;
-    pointLight.diffuse.x = 0.5f;
-    pointLight.diffuse.y = 0.5f;
-    pointLight.diffuse.z = 0.5f;
-    pointLight.specular.x = 0.8f;
-    pointLight.specular.y = 0.8f;
-    pointLight.specular.z = 0.8f;
-    pointLight.constant = 1.0f;
-    pointLight.linear = 0.09;
-    pointLight.quadratic = 0.032;
-    
-    spotLight.position.x = 0.0;
-    spotLight.position.y = 0.0;
-    spotLight.position.z = 0.0;
-    spotLight.direction.x = 0.0;
-    spotLight.direction.y = 0.0;
-    spotLight.direction.z = -1.0;
-    
-    spotLight.constant = 1.0f;
-    spotLight.linear = 0.09f;
-    spotLight.quadratic = 0.032f;
-    
-    spotLight.cutOff = cosf(10.0 / 180.0 * E_PI);
-    spotLight.outerCutOff = cosf(12.0 / 180.0 * E_PI);
-    
-    spotLight.ambient.x = 0.2;
-    spotLight.ambient.y = 0.2;
-    spotLight.ambient.z = 0.2;
-    spotLight.diffuse.x = 0.5;
-    spotLight.diffuse.y = 0.5;
-    spotLight.diffuse.z = 0.5;
-    spotLight.specular.x = 1.0;
-    spotLight.specular.y = 1.0;
-    spotLight.specular.z = 1.0;
-
-}
+//- (void)setupLight{
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, _myTexture);
+//    material._difsLightingMap = 0;
+//    material._spclLightingMap = 0;
+//    material.shininess = 32.0; //init material
+//
+//    dirLight.direction.x = -0.2;
+//    dirLight.direction.y = -1.0;
+//    dirLight.direction.z = -0.3;
+//    dirLight.ambient.x = 0.1;
+//    dirLight.ambient.y = 0.1;
+//    dirLight.ambient.z = 0.1;
+//    dirLight.diffuse.x = 0.3;
+//    dirLight.diffuse.y = 0.3;
+//    dirLight.diffuse.z = 0.3;
+//    dirLight.specular.x = 0.7;
+//    dirLight.specular.y = 0.7;
+//    dirLight.specular.z = 0.7;
+//
+//    //paras for all point lights (except for pos)
+//    pointLight.ambient.x = 0.05f;
+//    pointLight.ambient.y = 0.05f;
+//    pointLight.ambient.z = 0.05f;
+//    pointLight.diffuse.x = 0.5f;
+//    pointLight.diffuse.y = 0.5f;
+//    pointLight.diffuse.z = 0.5f;
+//    pointLight.specular.x = 0.8f;
+//    pointLight.specular.y = 0.8f;
+//    pointLight.specular.z = 0.8f;
+//    pointLight.constant = 1.0f;
+//    pointLight.linear = 0.09;
+//    pointLight.quadratic = 0.032;
+//
+//    spotLight.position.x = 0.0;
+//    spotLight.position.y = 0.0;
+//    spotLight.position.z = 0.0;
+//    spotLight.direction.x = 0.0;
+//    spotLight.direction.y = 0.0;
+//    spotLight.direction.z = -1.0;
+//
+//    spotLight.constant = 1.0f;
+//    spotLight.linear = 0.09f;
+//    spotLight.quadratic = 0.032f;
+//
+//    spotLight.cutOff = cosf(10.0 / 180.0 * E_PI);
+//    spotLight.outerCutOff = cosf(12.0 / 180.0 * E_PI);
+//
+//    spotLight.ambient.x = 0.2;
+//    spotLight.ambient.y = 0.2;
+//    spotLight.ambient.z = 0.2;
+//    spotLight.diffuse.x = 0.5;
+//    spotLight.diffuse.y = 0.5;
+//    spotLight.diffuse.z = 0.5;
+//    spotLight.specular.x = 1.0;
+//    spotLight.specular.y = 1.0;
+//    spotLight.specular.z = 1.0;
+//
+//}
 - (GLuint)setupTexture:(NSString *)fileName {
     // 1) Get Core Graphics image reference.
     /////当通过CGContextDrawImage绘制图片到一个context中时，如果传入的是UIImage的CGImageRef，因为UIKit和CG坐标系y轴相反，所以图片绘制将会上下颠倒。
@@ -830,7 +830,7 @@ const GLubyte grassIndices[] = {
     [self setupProjection];
     [self setupTransform];
     [self setupLookView];
-    [self setupLight];
+//    [self setupLight];
     
     _myTexture = [self setupTexture:@"metal.png"];
     _groundTexture = [self setupTexture:@"ground.png"];
@@ -1044,7 +1044,7 @@ const GLubyte grassIndices[] = {
     
     spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
     spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
-    [self updateLight]; //static light
+//    [self updateLight]; //static light
     
     //look at the same spot
     viewTgt.x = 0;
@@ -1155,23 +1155,32 @@ const GLubyte grassIndices[] = {
     glUniform1i(glGetUniformLocation(_programHandle, "skybox"), 8);
     /////
     
-    for(unsigned int i = 0; i < 10; i++)
-    {
-        modelPos = cubePositions[i];
-
-        modelRotate.x = 1.0f;
-        modelRotate.y = 0.3f;
-        modelRotate.z = 0.5f;
-        float angle = 20.0f * i;
-        _angle = angle;
-        modelScale.x = 0.5f;
-        modelScale.y = 0.5f;
-        modelScale.z = 0.5f;
-        [self updateTransform];
-        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
-        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
-        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-    }
+//    for(unsigned int i = 0; i < 10; i++)
+//    {
+//        modelPos = cubePositions[i];
+//
+//        modelRotate.x = 1.0f;
+//        modelRotate.y = 0.3f;
+//        modelRotate.z = 0.5f;
+//        float angle = 20.0f * i;
+//        _angle = angle;
+//        modelScale.x = 0.5f;
+//        modelScale.y = 0.5f;
+//        modelScale.z = 0.5f;
+//        [self updateTransform];
+//        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+//        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
+//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+//    }
+    
+    //use draw instance
+    modelScale.x = 0.5f;
+    modelScale.y = 0.5f;
+    modelScale.z = 0.5f;
+    [self updateTransform];
+    //use DrawInstanced to draw lots of cubes at one glDraw call:
+    glDrawElementsInstanced(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0, 10);
+    
     glBindVertexArray(0);//unbind vao
 //
 //    //then use lamp program to render grass
@@ -1197,16 +1206,8 @@ const GLubyte grassIndices[] = {
     // draw skybox at last
     glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
     glUseProgram(_skyBoxProgram);
-    ////////
-//    ksMatrix4 noTranslView;
-//    ksMatrixCopy(&noTranslView, &_lookViewMatrix);
-//    noTranslView.m[3][0] = 0.0;
-//    noTranslView.m[3][1] = 0.0;
-//    noTranslView.m[3][2] = 0.0;
-    //////
+
     
-//    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "view"), 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
-//    glUniformMatrix4fv(glGetUniformLocation(_skyBoxProgram, "projection"), 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
     // skybox cube
     glBindVertexArray(skyboxVAO);
     glActiveTexture(GL_TEXTURE0);
