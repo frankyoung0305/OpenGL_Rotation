@@ -15,6 +15,7 @@
 #define GRD_TEX_COORD_MAX   5
 #define GRASS_TEX_MAX   1
 #define SKY_BOX_SIZE 500
+#define CUBE_AMOUNT 10
 
 #define E_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 
@@ -662,6 +663,11 @@ const GLubyte grassIndices[] = {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(Indices), Indices, GL_STATIC_DRAW);
     
+    // add new attrib array: cube position
+    glGenBuffers(1, &positionBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+    glBufferData(GL_ARRAY_BUFFER, CUBE_AMOUNT * sizeof(ksVec3), &cubePositions[0], GL_STATIC_DRAW);
+    
     glGenBuffers(1, &groundVertexBuffer);
     glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer);
     glBufferData(GL_ARRAY_BUFFER, sizeof(groundVert), groundVert, GL_STATIC_DRAW);
@@ -705,6 +711,13 @@ const GLubyte grassIndices[] = {
     
     glEnableVertexAttribArray(_texCoordSlot);
     glEnableVertexAttribArray(_normalSlot);
+    
+    //////use instanced array
+    glEnableVertexAttribArray(glGetAttribLocation(_programHandle, "CubePosition"));
+    glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
+    glVertexAttribPointer(glGetAttribLocation(_programHandle, "CubePosition"), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
+    glVertexAttribDivisor(glGetAttribLocation(_programHandle, "CubePosition"), 1);
 
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。

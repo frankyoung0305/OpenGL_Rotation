@@ -68,6 +68,8 @@ typedef struct {
     
     GLuint vertexBuffer;
     GLuint indexBuffer;
+    GLuint positionBuffer;
+    
     GLuint groundVertexBuffer;
     GLuint groundIndexBuffer;
     GLuint grassVertexBuffer;
