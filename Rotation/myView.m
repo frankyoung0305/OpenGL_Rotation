@@ -80,7 +80,7 @@ const Vertex groundVert[] = {
     
 };
 
-const Vertex grassVert[] = {
+const Vertex boardVertices[] = {
     {{1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {GRASS_TEX_MAX, GRASS_TEX_MAX}},
     {{-1, 1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, GRASS_TEX_MAX}},
     {{-1, -1, 0}, {1, 1, 0, 1}, {0, 1, 0}, {0, 0}},
@@ -159,7 +159,7 @@ const GLubyte groundIndices[] = {
     2, 3, 0,
 };
 
-const GLubyte grassIndices[] = {
+const GLubyte boardIndices[] = {
     0, 1, 2,
     2, 3, 0,
 };
@@ -186,48 +186,50 @@ const GLubyte grassIndices[] = {
         _context = [[EAGLContext alloc] initWithAPI:kEAGLRenderingAPIOpenGLES3];
     }
     
-    NSAssert(_context && [EAGLContext setCurrentContext:_context], @"初始化GL环境失败");  //setCurrentContext
+    NSAssert(_context && [EAGLContext setCurrentContext:_context], @"context setup failed");  //setCurrentContext
 }
 
 - (void)setupRenderBuffer {
     // 生成 renderbuffer ( renderbuffer->framebuffer-> 用于展示的窗口 )
-    glGenRenderbuffers(1, &_colorrenderbuffer);
+    glGenRenderbuffers(1, &_originColorRenderBuffer);
     // 绑定 renderbuffer
-    glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _originColorRenderBuffer);
     // GL_RENDERBUFFER 的内容存储到实现 EAGLDrawable 协议的 CAEAGLLayer
     [_context renderbufferStorage:GL_RENDERBUFFER fromDrawable:_eaglLayer];
 }
 
 - (void)setupDepthStencilBuffer {
-    glGenRenderbuffers(1, &_depthStencilRenderBuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, _depthStencilRenderBuffer);
+    glGenRenderbuffers(1, &_originDepStenRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _originDepStenRenderBuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
 //use one buffer to restore depth and stencil data
 }
 
 
-- (void)setupFrameBuffer {
+- (void)setupFrameBuffers {
     //draw fbo(single-sampled framebuffer)
-    glGenFramebuffers(1, &_framebuffer);
+    glGenFramebuffers(1, &_originFramebuffer);
     // 设置为当前 framebuffer
-    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _originFramebuffer);
     [self setupRenderBuffer];
     [self setupDepthStencilBuffer];
 
     // 将 _colorRenderBuffer 装配到 GL_COLOR_ATTACHMENT0 这个装配点上
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER, _colorrenderbuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _depthStencilRenderBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0,GL_RENDERBUFFER, _originColorRenderBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _originDepStenRenderBuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _originDepStenRenderBuffer);
 
     //check frame buffer
     GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if(status != GL_FRAMEBUFFER_COMPLETE)
-        NSLog(@"frame buffer assembling ERROR: %x \n", status);
+    if(status != GL_FRAMEBUFFER_COMPLETE){
+        NSLog(@"orgin frame buffer assembling ERROR: %x \n", status);
+        exit(1);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  //unbind frame buffer
     
-//    //////////////////////////////////////////////////fbo for texture rendering
-    glGenFramebuffers(1, &_textureFrameBuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);
+//////////////////////////////////////////////////////////////////////////////////////////////fbo for texture rendering
+    glGenFramebuffers(1, &_rttFrameBuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _rttFrameBuffer);
 
     // The texture we're going to render to, 创建一个纹理图像，我们将它作为一个颜色附件附加到帧缓冲上
     glGenTextures(1, &_renderedTexture);
@@ -237,59 +239,72 @@ const GLubyte grassIndices[] = {
     // Give an empty image to OpenGL ( the last "0" )
     glTexImage2D(GL_TEXTURE_2D, 0,GL_RGBA, self.frame.size.width, self.frame.size.height, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
 
-    // Poor filtering. Needed !最近取样（
+    // Poor filtering. Needed !最近取样
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
-//     //Set "renderedTexture" as our colour attachement #0
-//    glFramebufferTexture(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, renderedTexture, 0);
+     //Set "renderedTexture" as our colour attachement #0
     glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, _renderedTexture, 0);
-//
+
     //////     render buffer for texture fbo
-    GLuint renderbufferForRTT;
-    glGenRenderbuffers(1, &renderbufferForRTT);
-    glBindRenderbuffer(GL_RENDERBUFFER, renderbufferForRTT);
+    GLuint _rttDepStenRenderBuffer;
+    glGenRenderbuffers(1, &_rttDepStenRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _rttDepStenRenderBuffer);
     glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH24_STENCIL8, self.frame.size.width, self.frame.size.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, renderbufferForRTT);
-    
-    
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_STENCIL_ATTACHMENT, GL_RENDERBUFFER, _rttDepStenRenderBuffer); ////////GL_DEPTH_STENCIL_ATTACHMENT?
     
     status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-    if(status != GL_FRAMEBUFFER_COMPLETE)
+    if(status != GL_FRAMEBUFFER_COMPLETE){
         NSLog(@"texture frame buffer assembling ERROR: %x \n", status);
+        exit(1);
+    }
     glBindFramebuffer(GL_FRAMEBUFFER, 0);  //unbind texture frame buffer
     
-    /////msaa fbo setup:
+    //////////////////////////////////////////////////////////////////////////////msaa fbo setup:
     // The following is MSAA settings
-    glGenFramebuffers(1, &mMSAAFramebuffer);
-    glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFramebuffer);
+    glGenFramebuffers(1, &_msaaFramebuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _msaaFramebuffer);
     
-    glGenRenderbuffers(1, &mMSAARenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderbuffer);
+    glGenRenderbuffers(1, &_msaaColorRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _msaaColorRenderBuffer);
     // 4 samples for color
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_RGBA8, self.frame.size.width, self.frame.size.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mMSAARenderbuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, _msaaColorRenderBuffer);
     
-    glGenRenderbuffers(1, &mMSAADepthRenderbuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, mMSAADepthRenderbuffer);
+    glGenRenderbuffers(1, &_msaaDepRenderBuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _msaaDepRenderBuffer);
     // 4 samples for depth
     glRenderbufferStorageMultisample(GL_RENDERBUFFER, 4, GL_DEPTH_COMPONENT16, self.frame.size.width, self.frame.size.height);
-    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mMSAADepthRenderbuffer);
+    glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, _msaaDepRenderBuffer);
     
     // Test the framebuffer for completeness.
     if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
     {
-        NSLog(@"failed to make complete framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        NSLog(@"failed to make complete msaa framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        exit(1);
     }
 
 ////////////////////////////////////////////////////////////
 }
 - (void)destoryRenderAndFrameBuffer
 {
-    glDeleteFramebuffers(1, &_framebuffer);
-    _framebuffer = 0;
-    glDeleteRenderbuffers(1, &_colorrenderbuffer);
-    _colorrenderbuffer = 0;
+    /////origin
+    glDeleteFramebuffers(1, &_originFramebuffer);
+    _originFramebuffer = 0;
+    glDeleteRenderbuffers(1, &_originColorRenderBuffer);
+    _originColorRenderBuffer = 0;
+    /////rtt
+    glDeleteFramebuffers(1, &_rttFrameBuffer);
+    _rttFrameBuffer = 0;
+    glDeleteRenderbuffers(1, &_rttDepStenRenderBuffer);
+    _rttDepStenRenderBuffer = 0;
+    /////msaa
+    glDeleteFramebuffers(1, &_msaaFramebuffer);
+    _msaaFramebuffer = 0;
+    glDeleteRenderbuffers(1, &_msaaColorRenderBuffer);
+    _msaaColorRenderBuffer = 0;
+    glDeleteRenderbuffers(1, &_msaaDepRenderBuffer);
+    _msaaDepRenderBuffer = 0;
 }
 
 /////////----shader
@@ -330,88 +345,38 @@ const GLubyte grassIndices[] = {
     
     return shaderHandle;
 }
-
-- (void)compileShaders {
+- (void)initProgram: (GLuint*) program withVS: (NSString*)VSname andFS: (NSString*)FSname{
+    GLuint vertexShader = [self compileShader:VSname withType:GL_VERTEX_SHADER];
+    GLuint fragmentShader = [self compileShader:FSname withType:GL_FRAGMENT_SHADER];
     
-    // 使用上面的方法来编译两个shader
-    GLuint vertexShader = [self compileShader:@"SimpleVertex" withType:GL_VERTEX_SHADER];
-    GLuint fragmentShader = [self compileShader:@"SimpleFragment" withType:GL_FRAGMENT_SHADER];
-    // compile lamp shader program
-    GLuint lampvertexShader = [self compileShader:@"lampVertex" withType:GL_VERTEX_SHADER];
-    GLuint lampfragmentShader = [self compileShader:@"lampFragment" withType:GL_FRAGMENT_SHADER];
-    //compile screenShader
-    GLuint screenVS = [self compileShader:@"postProcessVS" withType:GL_VERTEX_SHADER];
-    GLuint screenFS = [self compileShader:@"postProcessFS" withType:GL_FRAGMENT_SHADER];
-    //compile skyBoxShader
-    GLuint skyBoxVS = [self compileShader:@"skyBoxVS" withType:GL_VERTEX_SHADER];
-    GLuint skyBoxFS = [self compileShader:@"skyBoxFS" withType:GL_FRAGMENT_SHADER];
-    
-    // 调用接下来的func来创建和将shader们连接到program。当链接着色器至一个程序的时候，它会把每个着色器的输出链接到下个着色器的输入。当输出和输入不匹配的时候，会得到一个链接错误
-    _programHandle = glCreateProgram();
-    glAttachShader(_programHandle, vertexShader);
-    glAttachShader(_programHandle, fragmentShader);
-    glLinkProgram(_programHandle);
-    //link lamp program
-    _lampProgram = glCreateProgram();
-    glAttachShader(_lampProgram, lampvertexShader);
-    glAttachShader(_lampProgram, lampfragmentShader);
-    glLinkProgram(_lampProgram);
-    // link screen shader program
-    _screenProgram = glCreateProgram();
-    glAttachShader(_screenProgram, screenVS);
-    glAttachShader(_screenProgram, screenFS);
-    glLinkProgram(_screenProgram);
-    //link sky box shader program
-    _skyBoxProgram = glCreateProgram();
-    glAttachShader(_skyBoxProgram, skyBoxVS);
-    glAttachShader(_skyBoxProgram, skyBoxFS);
-    glLinkProgram(_skyBoxProgram);
+    *program = glCreateProgram();
+    glAttachShader(*program, vertexShader);
+    glAttachShader(*program, fragmentShader);
+    glLinkProgram(*program);
     
     // check
     GLint linkSuccess;
-    glGetProgramiv(_programHandle, GL_LINK_STATUS, &linkSuccess);
+    glGetProgramiv(*program, GL_LINK_STATUS, &linkSuccess);
     if (linkSuccess == GL_FALSE) {
         GLchar messages[256];
-        glGetProgramInfoLog(_programHandle, sizeof(messages), 0, &messages[0]);
+        glGetProgramInfoLog(*program, sizeof(messages), 0, &messages[0]);
         NSString *messageString = [NSString stringWithUTF8String:messages];
         NSLog(@"lighting program fail: %@", messageString);
         exit(1);
     }
-    GLint lampLinkSuccess;
-    glGetProgramiv(_lampProgram, GL_LINK_STATUS, &lampLinkSuccess);
-    if (lampLinkSuccess == GL_FALSE) {
-        GLchar messages[256];
-        glGetProgramInfoLog(_lampProgram, sizeof(messages), 0, &messages[0]);
-        NSString *messageString = [NSString stringWithUTF8String:messages];
-        NSLog(@"lamp program fail: %@", messageString);
-        exit(1);
-    }
-    GLint screenLinkSuccess;
-    glGetProgramiv(_screenProgram, GL_LINK_STATUS, &screenLinkSuccess);
-    if (screenLinkSuccess == GL_FALSE) {
-        GLchar messages[256];
-        glGetProgramInfoLog(_screenProgram, sizeof(messages), 0, &messages[0]);
-        NSString *messageString = [NSString stringWithUTF8String:messages];
-        NSLog(@"lamp program fail: %@", messageString);
-        exit(1);
-    }
-    GLint skyBoxLinkSuccess;
-    glGetProgramiv(_skyBoxProgram, GL_LINK_STATUS, &skyBoxLinkSuccess);
-    if (skyBoxLinkSuccess == GL_FALSE) {
-        GLchar messages[256];
-        glGetProgramInfoLog(_skyBoxProgram, sizeof(messages), 0, &messages[0]);
-        NSString *messageString = [NSString stringWithUTF8String:messages];
-        NSLog(@"lamp program fail: %@", messageString);
-        exit(1);
-    }
+}
+- (void)compileShaders {
+    [self initProgram:&_originProgram withVS:@"SimpleVertex" andFS:@"SimpleFragment"];
+    [self initProgram:&_lampProgram withVS:@"lampVertex" andFS:@"lampFragment"];
+    [self initProgram:&_screenProgram withVS:@"postProcessVS" andFS:@"postProcessFS"];
+    [self initProgram:&_skyBoxProgram withVS:@"skyBoxVS" andFS:@"skyBoxFS"];
     
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
-    _positionSlot = glGetAttribLocation(_programHandle, "Position");
-    _colorSlot = glGetAttribLocation(_programHandle, "SourceColor");
-    _normalSlot = glGetAttribLocation(_programHandle, "normal");
-    _texCoordSlot = glGetAttribLocation(_programHandle, "TexCoordIn");    //texture
+    _positionSlot = glGetAttribLocation(_originProgram, "Position");
+    _colorSlot = glGetAttribLocation(_originProgram, "SourceColor");
+    _normalSlot = glGetAttribLocation(_originProgram, "normal");
+    _texCoordSlot = glGetAttribLocation(_originProgram, "TexCoordIn");    //texture
 
-    
     ////lamp attribs
     _lampPositionSlot = glGetAttribLocation(_lampProgram, "Position");
     _lampTexCoordSlot = glGetAttribLocation(_lampProgram, "TexCoordIn");
@@ -427,11 +392,11 @@ const GLubyte grassIndices[] = {
     
     ///////////////////////////////uniforms///////////////////////////
     // Get the uniform model-view matrix slot from program
-    _modelSlot = glGetUniformLocation(_programHandle, "model");
+    _modelSlot = glGetUniformLocation(_originProgram, "model");
     // Get the uniform projection matrix slot from program
-//    _projectionSlot = glGetUniformLocation(_programHandle, "projection");
+//    _projectionSlot = glGetUniformLocation(_originProgram, "projection");
     // Get the uniform view matrix slot from program
-//    _lookViewSlot = glGetUniformLocation(_programHandle, "lookView");
+//    _lookViewSlot = glGetUniformLocation(_originProgram, "lookView");
     ///////////////////////////mvp mat slot setup for lamp
     _lampModelSlot = glGetUniformLocation(_lampProgram, "model");
 //    _lampProjectionSlot = glGetUniformLocation(_lampProgram, "projection");
@@ -441,59 +406,59 @@ const GLubyte grassIndices[] = {
     _screenTextureSlot = glGetUniformLocation(_screenProgram, "screenTexture");
 
     ////////////////////////////////
-    _eyePosSlot = glGetUniformLocation(_programHandle, "eyePos");
-//
-//    _diffuseMapSlot = glGetUniformLocation(_programHandle, "material.diffuse");
-//    _specularMapSlot = glGetUniformLocation(_programHandle, "material.specular");
-//    _shininessSlot = glGetUniformLocation(_programHandle, "material.shininess");
-//   //light slot init
-//    _spotLightPositionSlot = glGetUniformLocation(_programHandle, "spotLight.position");
-//    _spotLightDircSlot = glGetUniformLocation(_programHandle, "spotLight.direction");
-//    _spotLightAmbientSlot = glGetUniformLocation(_programHandle, "spotLight.ambient");
-//    _spotLightDiffuseSlot = glGetUniformLocation(_programHandle, "spotLight.diffuse");
-//    _spotLightSpecularSlot = glGetUniformLocation(_programHandle, "spotLight.specular");
-//    _spotLightConstantSlot = glGetUniformLocation(_programHandle, "spotLight.constant");
-//    _spotLightLinearSlot = glGetUniformLocation(_programHandle, "spotLight.linear");
-//    _spotLightQuadraticSlot = glGetUniformLocation(_programHandle, "spotLight.quadratic");
-//    _spotLightCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.cutOff");
-//    _spotLightOuterCutOffSlot = glGetUniformLocation(_programHandle, "spotLight.outerCutOff");
-//    //directional light slots init
-//    _dirLightDircSlot = glGetUniformLocation(_programHandle, "dirLight.direction");
-//    _dirLightAmbntSlot = glGetUniformLocation(_programHandle, "dirLight.ambient");
-//    _dirLightDifsSlot = glGetUniformLocation(_programHandle, "dirLight.diffuse");
-//    _dirLightSpclSlot = glGetUniformLocation(_programHandle, "dirLight.specular");
-//    //point light slots init
-//    _pointLightPosSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].position");
-//    _pointLightAmbntSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].ambient");
-//    _pointLightDifsSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].diffuse");
-//    _pointLightSpclSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].specular");
-//    _pointLightConstSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].constant");
-//    _pointLightLinearSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].linear");
-//    _pointLightQuadSlot0 = glGetUniformLocation(_programHandle, "pointLights[0].quadratic");
-//
-//    _pointLightPosSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].position");
-//    _pointLightAmbntSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].ambient");
-//    _pointLightDifsSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].diffuse");
-//    _pointLightSpclSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].specular");
-//    _pointLightConstSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].constant");
-//    _pointLightLinearSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].linear");
-//    _pointLightQuadSlot1 = glGetUniformLocation(_programHandle, "pointLights[1].quadratic");
-//
-//    _pointLightPosSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].position");
-//    _pointLightAmbntSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].ambient");
-//    _pointLightDifsSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].diffuse");
-//    _pointLightSpclSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].specular");
-//    _pointLightConstSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].constant");
-//    _pointLightLinearSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].linear");
-//    _pointLightQuadSlot2 = glGetUniformLocation(_programHandle, "pointLights[2].quadratic");
-//
-//    _pointLightPosSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].position");
-//    _pointLightAmbntSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].ambient");
-//    _pointLightDifsSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].diffuse");
-//    _pointLightSpclSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].specular");
-//    _pointLightConstSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].constant");
-//    _pointLightLinearSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].linear");
-//    _pointLightQuadSlot3 = glGetUniformLocation(_programHandle, "pointLights[3].quadratic");
+    _eyePosSlot = glGetUniformLocation(_originProgram, "eyePos");
+
+    _diffuseMapSlot = glGetUniformLocation(_originProgram, "material.diffuse");
+    _specularMapSlot = glGetUniformLocation(_originProgram, "material.specular");
+    _shininessSlot = glGetUniformLocation(_originProgram, "material.shininess");
+   //light slot init
+    _spotLightPositionSlot = glGetUniformLocation(_originProgram, "spotLight.position");
+    _spotLightDircSlot = glGetUniformLocation(_originProgram, "spotLight.direction");
+    _spotLightAmbientSlot = glGetUniformLocation(_originProgram, "spotLight.ambient");
+    _spotLightDiffuseSlot = glGetUniformLocation(_originProgram, "spotLight.diffuse");
+    _spotLightSpecularSlot = glGetUniformLocation(_originProgram, "spotLight.specular");
+    _spotLightConstantSlot = glGetUniformLocation(_originProgram, "spotLight.constant");
+    _spotLightLinearSlot = glGetUniformLocation(_originProgram, "spotLight.linear");
+    _spotLightQuadraticSlot = glGetUniformLocation(_originProgram, "spotLight.quadratic");
+    _spotLightCutOffSlot = glGetUniformLocation(_originProgram, "spotLight.cutOff");
+    _spotLightOuterCutOffSlot = glGetUniformLocation(_originProgram, "spotLight.outerCutOff");
+    //directional light slots init
+    _dirLightDircSlot = glGetUniformLocation(_originProgram, "dirLight.direction");
+    _dirLightAmbntSlot = glGetUniformLocation(_originProgram, "dirLight.ambient");
+    _dirLightDifsSlot = glGetUniformLocation(_originProgram, "dirLight.diffuse");
+    _dirLightSpclSlot = glGetUniformLocation(_originProgram, "dirLight.specular");
+    //point light slots init
+    _pointLightPosSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].position");
+    _pointLightAmbntSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].ambient");
+    _pointLightDifsSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].diffuse");
+    _pointLightSpclSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].specular");
+    _pointLightConstSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].constant");
+    _pointLightLinearSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].linear");
+    _pointLightQuadSlot0 = glGetUniformLocation(_originProgram, "pointLights[0].quadratic");
+
+    _pointLightPosSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].position");
+    _pointLightAmbntSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].ambient");
+    _pointLightDifsSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].diffuse");
+    _pointLightSpclSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].specular");
+    _pointLightConstSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].constant");
+    _pointLightLinearSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].linear");
+    _pointLightQuadSlot1 = glGetUniformLocation(_originProgram, "pointLights[1].quadratic");
+
+    _pointLightPosSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].position");
+    _pointLightAmbntSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].ambient");
+    _pointLightDifsSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].diffuse");
+    _pointLightSpclSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].specular");
+    _pointLightConstSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].constant");
+    _pointLightLinearSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].linear");
+    _pointLightQuadSlot2 = glGetUniformLocation(_originProgram, "pointLights[2].quadratic");
+
+    _pointLightPosSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].position");
+    _pointLightAmbntSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].ambient");
+    _pointLightDifsSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].diffuse");
+    _pointLightSpclSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].specular");
+    _pointLightConstSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].constant");
+    _pointLightLinearSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].linear");
+    _pointLightQuadSlot3 = glGetUniformLocation(_originProgram, "pointLights[3].quadratic");
     
 }
 
@@ -530,65 +495,65 @@ const GLubyte grassIndices[] = {
     viewTgt.y = 0;
     viewTgt.z = -1;
 }
-//- (void)setupLight{
-//    glActiveTexture(GL_TEXTURE0);
-//    glBindTexture(GL_TEXTURE_2D, _myTexture);
-//    material._difsLightingMap = 0;
-//    material._spclLightingMap = 0;
-//    material.shininess = 32.0; //init material
-//
-//    dirLight.direction.x = -0.2;
-//    dirLight.direction.y = -1.0;
-//    dirLight.direction.z = -0.3;
-//    dirLight.ambient.x = 0.1;
-//    dirLight.ambient.y = 0.1;
-//    dirLight.ambient.z = 0.1;
-//    dirLight.diffuse.x = 0.3;
-//    dirLight.diffuse.y = 0.3;
-//    dirLight.diffuse.z = 0.3;
-//    dirLight.specular.x = 0.7;
-//    dirLight.specular.y = 0.7;
-//    dirLight.specular.z = 0.7;
-//
-//    //paras for all point lights (except for pos)
-//    pointLight.ambient.x = 0.05f;
-//    pointLight.ambient.y = 0.05f;
-//    pointLight.ambient.z = 0.05f;
-//    pointLight.diffuse.x = 0.5f;
-//    pointLight.diffuse.y = 0.5f;
-//    pointLight.diffuse.z = 0.5f;
-//    pointLight.specular.x = 0.8f;
-//    pointLight.specular.y = 0.8f;
-//    pointLight.specular.z = 0.8f;
-//    pointLight.constant = 1.0f;
-//    pointLight.linear = 0.09;
-//    pointLight.quadratic = 0.032;
-//
-//    spotLight.position.x = 0.0;
-//    spotLight.position.y = 0.0;
-//    spotLight.position.z = 0.0;
-//    spotLight.direction.x = 0.0;
-//    spotLight.direction.y = 0.0;
-//    spotLight.direction.z = -1.0;
-//
-//    spotLight.constant = 1.0f;
-//    spotLight.linear = 0.09f;
-//    spotLight.quadratic = 0.032f;
-//
-//    spotLight.cutOff = cosf(10.0 / 180.0 * E_PI);
-//    spotLight.outerCutOff = cosf(12.0 / 180.0 * E_PI);
-//
-//    spotLight.ambient.x = 0.2;
-//    spotLight.ambient.y = 0.2;
-//    spotLight.ambient.z = 0.2;
-//    spotLight.diffuse.x = 0.5;
-//    spotLight.diffuse.y = 0.5;
-//    spotLight.diffuse.z = 0.5;
-//    spotLight.specular.x = 1.0;
-//    spotLight.specular.y = 1.0;
-//    spotLight.specular.z = 1.0;
-//
-//}
+- (void)setupLight{
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, _mentalTexture);
+    material._difsLightingMap = 0;
+    material._spclLightingMap = 0;
+    material._shininess = 32.0; //init material
+
+    dirLight.direction.x = -0.2;
+    dirLight.direction.y = -1.0;
+    dirLight.direction.z = -0.3;
+    dirLight.ambient.x = 0.1;
+    dirLight.ambient.y = 0.1;
+    dirLight.ambient.z = 0.1;
+    dirLight.diffuse.x = 0.3;
+    dirLight.diffuse.y = 0.3;
+    dirLight.diffuse.z = 0.3;
+    dirLight.specular.x = 0.7;
+    dirLight.specular.y = 0.7;
+    dirLight.specular.z = 0.7;
+
+    //paras for all point lights (except for pos)
+    pointLight.ambient.x = 0.05f;
+    pointLight.ambient.y = 0.05f;
+    pointLight.ambient.z = 0.05f;
+    pointLight.diffuse.x = 0.5f;
+    pointLight.diffuse.y = 0.5f;
+    pointLight.diffuse.z = 0.5f;
+    pointLight.specular.x = 0.8f;
+    pointLight.specular.y = 0.8f;
+    pointLight.specular.z = 0.8f;
+    pointLight.constant = 1.0f;
+    pointLight.linear = 0.09;
+    pointLight.quadratic = 0.032;
+
+    spotLight.position.x = 0.0;
+    spotLight.position.y = 0.0;
+    spotLight.position.z = 0.0;
+    spotLight.direction.x = 0.0;
+    spotLight.direction.y = 0.0;
+    spotLight.direction.z = -1.0;
+
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+
+    spotLight.cutOff = cosf(10.0 / 180.0 * E_PI);
+    spotLight.outerCutOff = cosf(12.0 / 180.0 * E_PI);
+
+    spotLight.ambient.x = 0.2;
+    spotLight.ambient.y = 0.2;
+    spotLight.ambient.z = 0.2;
+    spotLight.diffuse.x = 0.5;
+    spotLight.diffuse.y = 0.5;
+    spotLight.diffuse.z = 0.5;
+    spotLight.specular.x = 1.0;
+    spotLight.specular.y = 1.0;
+    spotLight.specular.z = 1.0;
+
+}
 - (GLuint)setupTexture:(NSString *)fileName {
     // 1) Get Core Graphics image reference.
     /////当通过CGContextDrawImage绘制图片到一个context中时，如果传入的是UIImage的CGImageRef，因为UIKit和CG坐标系y轴相反，所以图片绘制将会上下颠倒。
@@ -675,7 +640,7 @@ const GLubyte grassIndices[] = {
 - (void) setupMaterial: (Material*) material withDfsTexture: (GLuint) texture1 spcTexture: (GLuint) texture2 Shininess: (float) shininess{
     material->_difsLightingMap = texture1;
     material->_spclLightingMap = texture2;
-    material->shininess = shininess;
+    material->_shininess = shininess;
 }
 
 
@@ -702,20 +667,21 @@ const GLubyte grassIndices[] = {
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer);
     glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(groundIndices), groundIndices, GL_STATIC_DRAW);
     
-    glGenBuffers(1, &grassVertexBuffer);
-    glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
-    glBufferData(GL_ARRAY_BUFFER, sizeof(grassVert), grassVert, GL_STATIC_DRAW);
+    glGenBuffers(1, &boardVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, boardVertexBuffer);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(boardVertices), boardVertices, GL_STATIC_DRAW);
     
-    glGenBuffers(1, &grassIndexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndexBuffer);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(grassIndices), grassIndices, GL_STATIC_DRAW);
+    glGenBuffers(1, &boardIndexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boardIndexBuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(boardIndices), boardIndices, GL_STATIC_DRAW);
     
 }
 //setup a VAO
 - (void)setupVAO{
+    /////////////////////////////////////////////////////////////cube obj
     //gen and bind VAO as current object.
-    glGenVertexArrays(1, &_objectA);
-    glBindVertexArray(_objectA);
+    glGenVertexArrays(1, &_cubeObj);
+    glBindVertexArray(_cubeObj);
     
     // bind VBOs for current object
     glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
@@ -739,17 +705,17 @@ const GLubyte grassIndices[] = {
     glEnableVertexAttribArray(_normalSlot);
     
     //////use instanced array
-    glEnableVertexAttribArray(glGetAttribLocation(_programHandle, "CubePosition"));
+    glEnableVertexAttribArray(glGetAttribLocation(_originProgram, "CubePosition"));
     glBindBuffer(GL_ARRAY_BUFFER, positionBuffer);
-    glVertexAttribPointer(glGetAttribLocation(_programHandle, "CubePosition"), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
+    glVertexAttribPointer(glGetAttribLocation(_originProgram, "CubePosition"), 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), 0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
-    glVertexAttribDivisor(glGetAttribLocation(_programHandle, "CubePosition"), 1);
+    glVertexAttribDivisor(glGetAttribLocation(_originProgram, "CubePosition"), 1); //a val for every other instance
 
     
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
     glBindVertexArray(0);//unbind to exit editing.
     
-    //ground
+    ////////////////////////////////////////////////////////////ground obj
     glGenVertexArrays(1, &_groundObj);
     glBindVertexArray(_groundObj);
     
@@ -771,7 +737,7 @@ const GLubyte grassIndices[] = {
     
     glBindVertexArray(0);
     
-    ///lamp
+    //////////////////////////////////////////////////////lamp obj
 
     glGenVertexArrays(1, &_lampObj);
     glBindVertexArray(_lampObj);
@@ -787,12 +753,12 @@ const GLubyte grassIndices[] = {
     glBindVertexArray(0);
     
     //grass use modified lampProgram
-    glGenVertexArrays(1, &_grassObj);
-    glBindVertexArray(_grassObj);
+    glGenVertexArrays(1, &_boardObj);
+    glBindVertexArray(_boardObj);
     
-    glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, boardVertexBuffer);
     glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
-
+    //use lamp program
     glVertexAttribPointer(_lampPositionSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
     glVertexAttribPointer(_lampTexCoordSlot, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
     
@@ -801,12 +767,12 @@ const GLubyte grassIndices[] = {
     
     glBindVertexArray(0);
     
-    //screen use screen program, use vbo of grass obj
+    ////////////////////////////////////////////////screen obj use screen program, use vbo of board obj
     glGenVertexArrays(1, &_screenObj);
     glBindVertexArray(_screenObj);
     
-    glBindBuffer(GL_ARRAY_BUFFER, grassVertexBuffer);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, grassIndexBuffer);
+    glBindBuffer(GL_ARRAY_BUFFER, boardVertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, boardIndexBuffer);
     
     glVertexAttribPointer(_screenPosSlot, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
     glVertexAttribPointer(_screenTexCoordSlot, 2, GL_FLOAT, GL_FALSE, sizeof(Vertex), (GLvoid*) (sizeof(float) * 10));
@@ -816,7 +782,7 @@ const GLubyte grassIndices[] = {
     
     glBindVertexArray(0); //unbind
     
-    //sky box vao
+    ////////////////////////////////////////////////sky box vao
     glGenVertexArrays(1, &skyboxVAO);
     glGenBuffers(1, &skyboxVBO);
 
@@ -835,20 +801,17 @@ const GLubyte grassIndices[] = {
     
     [self destoryRenderAndFrameBuffer];
     
-//    [self setupDepthStencilBuffer];
-//    [self setupRenderBuffer];
-    
-    [self setupFrameBuffer];
+    [self setupFrameBuffers];
 
     [self compileShaders];
-    ///////////////////////use uniform block
+    ////////////////////////////////////////////////////////////////use uniform block
     
     //1. bind uniform block to binding 0
     GLuint uniformBlockIndexSkyBox = glGetUniformBlockIndex(_skyBoxProgram, "Matrices");
-    GLuint uniformBlockIndexMainProgram = glGetUniformBlockIndex(_programHandle, "Matrices");
+    GLuint uniformBlockIndexMainProgram = glGetUniformBlockIndex(_originProgram, "Matrices");
     GLuint uniformBlockIndexLamp = glGetUniformBlockIndex(_lampProgram, "Matrices");
     glUniformBlockBinding(_skyBoxProgram, uniformBlockIndexSkyBox, 0);
-    glUniformBlockBinding(_programHandle, uniformBlockIndexMainProgram, 0);
+    glUniformBlockBinding(_originProgram, uniformBlockIndexMainProgram, 0);
     glUniformBlockBinding(_lampProgram, uniformBlockIndexLamp, 0);
 
     //2. init a ubo, bind ubo to binding 0
@@ -859,9 +822,7 @@ const GLubyte grassIndices[] = {
     glBindBuffer(GL_UNIFORM_BUFFER, 0);
     
     glBindBufferRange(GL_UNIFORM_BUFFER, 0, uboMatrices, 0, 2 * sizeof(ksMatrix4)); //binding
-
-
-    
+    ///////////////////////////////////////////////////////////////
     
     [self setupVBOs];   //setup VBOs and push data, then bind them to VAOs
     [self setupVAO];
@@ -869,31 +830,32 @@ const GLubyte grassIndices[] = {
     [self setupProjection];
     [self setupTransform];
     [self setupLookView];
-//    [self setupLight];
+    [self setupLight];
     
-    _myTexture = [self setupTexture:@"metal.png"];
+    ///////textures
+    _mentalTexture = [self setupTexture:@"metal.png"];
     _groundTexture = [self setupTexture:@"ground.png"];
     _woodTexture = [self setupTexture:@"wood.png"];
     _frameTexture = [self setupTexture:@"frame.png"];
     _grassTexture = [self setupTexture:@"grass.png"];
     _windowTexture = [self setupTexture:@"window.png"];
     
-    glActiveTexture(GL_TEXTURE1); //激活纹理单元
-    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    glActiveTexture(GL_TEXTURE2);
-    glBindTexture(GL_TEXTURE_2D, _groundTexture);
-    glActiveTexture(GL_TEXTURE3);
-    glBindTexture(GL_TEXTURE_2D, _woodTexture);
-    glActiveTexture(GL_TEXTURE4);
-    glBindTexture(GL_TEXTURE_2D, _frameTexture);
-    glActiveTexture(GL_TEXTURE5);
-    glBindTexture(GL_TEXTURE_2D, _grassTexture);
-    glActiveTexture(GL_TEXTURE6);
-    glBindTexture(GL_TEXTURE_2D, _windowTexture);
+//    glActiveTexture(GL_TEXTURE1); //激活纹理单元
+//    glBindTexture(GL_TEXTURE_2D, _mentalTexture);
+//    glActiveTexture(GL_TEXTURE2);
+//    glBindTexture(GL_TEXTURE_2D, _groundTexture);
+//    glActiveTexture(GL_TEXTURE3);
+//    glBindTexture(GL_TEXTURE_2D, _woodTexture);
+//    glActiveTexture(GL_TEXTURE4);
+//    glBindTexture(GL_TEXTURE_2D, _frameTexture);
+//    glActiveTexture(GL_TEXTURE5);
+//    glBindTexture(GL_TEXTURE_2D, _grassTexture);
+//    glActiveTexture(GL_TEXTURE6);
+//    glBindTexture(GL_TEXTURE_2D, _windowTexture);
 
-    [self setupMaterial:&metal withDfsTexture:1 spcTexture:1 Shininess:256.0];
-    [self setupMaterial:&ground withDfsTexture:2 spcTexture:2 Shininess:8.0];
-    [self setupMaterial:&wood withDfsTexture:3 spcTexture:4 Shininess:256.0];
+    [self setupMaterial:&metal withDfsTexture:_mentalTexture spcTexture:_mentalTexture Shininess:256.0];
+    [self setupMaterial:&ground withDfsTexture:_groundTexture spcTexture:_groundTexture Shininess:8.0];
+    [self setupMaterial:&wood withDfsTexture:_woodTexture spcTexture:_frameTexture Shininess:256.0];
     
     ////////////////////setup cube map(sky box)
     glGenTextures(1, &_skyBoxTexture);
@@ -920,19 +882,15 @@ const GLubyte grassIndices[] = {
 -(void)updateProjection
 {
     // Generate a perspective matrix with a 60 degree FOV
-    //
     ksMatrixLoadIdentity(&_projectionMatrix);
     
-    //视角，长宽比，近平面距离，远平面距离
+//    视角，长宽比，近平面距离，远平面距离
 //    ksOrtho(&_projectionMatrix, -5 * _aspect, 5 * _aspect, -5, 5, 1.0, 50.0);
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
     
-    // Load projection matrix(传送数据)
-//    glUniformMatrix4fv(_projectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
 }
 - (void)updateLampProjection{
-    //lamp use same projection mat
-//    glUniformMatrix4fv(_lampProjectionSlot, 1, GL_FALSE, (GLfloat*)&_projectionMatrix.m[0][0]);
+
 }
 - (void)updateTransform
 {
@@ -958,24 +916,15 @@ const GLubyte grassIndices[] = {
 }
 - (void)updateView{
     // Generate a view matrix
-    //
     ksMatrixLoadIdentity(&_lookViewMatrix);
-//    ksVec3 eye;
-//    eye.x = viewEye.x;
-//    eye.y = viewEye.y;
-//    eye.z = viewEye.z;
-//    ksVec3 target;
-//    target.x = viewTgt.x;
-//    target.y = viewTgt.y;
-//    target.z = viewTgt.z;
+
     ksVec3 up;
     up.x = 0;
     up.y = 1;
     up.z = 0;
     //视角，长宽比，近平面距离，远平面距离
     ksLookAt(&_lookViewMatrix, &viewEye, &viewTgt, &up);
-    // Load projection matrix(传送数据)
-//    glUniformMatrix4fv(_lookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+
     //load eye position uniform
     glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
@@ -1036,9 +985,15 @@ const GLubyte grassIndices[] = {
 
 - (void) updateMaterial{
     //update material para
-    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
-    glUniform1i(_specularMapSlot, material._spclLightingMap);
-    glUniform1f(_shininessSlot, material.shininess);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, material._difsLightingMap);
+    glUniform1i(_diffuseMapSlot, 0);
+    glActiveTexture(GL_TEXTURE1);
+    glBindTexture(GL_TEXTURE_2D, material._spclLightingMap);
+    glUniform1i(_specularMapSlot, 1);
+//    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
+//    glUniform1i(_specularMapSlot, material._spclLightingMap);
+    glUniform1f(_shininessSlot, material._shininess);
 }
 
 ///////////////////////////////////////////////////////////
@@ -1049,7 +1004,7 @@ const GLubyte grassIndices[] = {
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     //setup lighting program first
-    glUseProgram(_programHandle);
+    glUseProgram(_originProgram);
     //static light spot
     //set light source position
     spotLight.position.x = 0.0f;
@@ -1083,7 +1038,7 @@ const GLubyte grassIndices[] = {
     
     spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
     spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
-//    [self updateLight]; //static light
+    [self updateLight]; //static light
     
     //look at the same spot
     viewTgt.x = 0;
@@ -1100,7 +1055,6 @@ const GLubyte grassIndices[] = {
 
     //then setup lamp program
     glUseProgram(_lampProgram);
-    [self updateLampProjection];
     [self updateLampView];
 }
 
@@ -1110,8 +1064,8 @@ const GLubyte grassIndices[] = {
 //    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);// render to texture
     
     /////////////////////////render to MSAA fbo
-    glBindFramebuffer(GL_FRAMEBUFFER, mMSAAFramebuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, mMSAARenderbuffer);
+    glBindFramebuffer(GL_FRAMEBUFFER, _msaaFramebuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _msaaColorRenderBuffer);
     ///////////////////////
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
@@ -1126,7 +1080,7 @@ const GLubyte grassIndices[] = {
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
     // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
     //use lighting program to render cubes
-    glUseProgram(_programHandle);
+    glUseProgram(_originProgram);
  
     //set view parameters
 //    //fixed eye:
@@ -1184,19 +1138,19 @@ const GLubyte grassIndices[] = {
 
     
     ///////////////////////////////
-    glUseProgram(_programHandle);
+    glUseProgram(_originProgram);
     // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
-    glBindVertexArray(_objectA);
+    glBindVertexArray(_cubeObj);
     //applying  texture
     //    glActiveTexture(GL_TEXTURE0);
     //    glBindTexture(GL_TEXTURE_2D, _myTexture);
-//    material = wood;
-//    [self updateMaterial]; //all cubes using same material
+    material = wood;
+    [self updateMaterial]; //all cubes using same material
     
     //use sky box texture to perform environment reflection
     glActiveTexture(GL_TEXTURE8);
     glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
-    glUniform1i(glGetUniformLocation(_programHandle, "skybox"), 8);
+    glUniform1i(glGetUniformLocation(_originProgram, "skybox"), 8);
     /////
     
 //    for(unsigned int i = 0; i < 10; i++)
@@ -1277,8 +1231,8 @@ const GLubyte grassIndices[] = {
 //
     
     ////////////////////////////////////////////copy MSAA fbo to screen fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _framebuffer);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, mMSAAFramebuffer);
+    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _originFramebuffer);
+    glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaaFramebuffer);
     // OpenGL ES3.0 Core multisampling
     
     // Discard the depth buffer from the read fbo. It is no more necessary.
@@ -1300,7 +1254,7 @@ const GLubyte grassIndices[] = {
     NSLog(@"timval:%llums; FPS:%d", timval,fps);
     
     
-    glBindRenderbuffer(GL_RENDERBUFFER, _colorrenderbuffer);
+    glBindRenderbuffer(GL_RENDERBUFFER, _originColorRenderBuffer);
     [_context presentRenderbuffer:GL_RENDERBUFFER];
 }
 

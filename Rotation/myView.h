@@ -13,7 +13,7 @@ typedef struct {
 typedef struct {  //光照材质
     GLuint _difsLightingMap;  //漫反射光照贴图纹理入口
     GLuint _spclLightingMap;  //镜面反射光照贴图纹理入口
-    float shininess;
+    float _shininess;
 } Material;
 
 typedef struct {
@@ -57,18 +57,18 @@ typedef struct {
     // val for a GLView
     CAEAGLLayer *_eaglLayer;
     EAGLContext *_context;
-    GLuint _framebuffer;
-    GLuint _colorrenderbuffer;
-    GLuint _depthStencilRenderBuffer;
-    
-    GLuint _renderedTexture; //texture target to draw on
 
+    GLuint _originColorRenderBuffer;
+    GLuint _originDepStenRenderBuffer;
+    GLuint _originFramebuffer;
+
+    GLuint _renderedTexture; //texture target to draw on
+    GLuint _rttDepStenRenderBuffer;
+    GLuint _rttFrameBuffer; //for render to texture
     
-    GLuint _textureFrameBuffer; //for render to texture
-    
-    GLuint mMSAARenderbuffer;// for MSAA
-    GLuint mMSAADepthRenderbuffer;
-    GLuint mMSAAFramebuffer; //for MSAA
+    GLuint _msaaColorRenderBuffer;// for MSAA
+    GLuint _msaaDepRenderBuffer;
+    GLuint _msaaFramebuffer; //for MSAA
     
     
     GLuint vertexBuffer;
@@ -77,10 +77,10 @@ typedef struct {
     
     GLuint groundVertexBuffer;
     GLuint groundIndexBuffer;
-    GLuint grassVertexBuffer;
-    GLuint grassIndexBuffer;
+    GLuint boardVertexBuffer;
+    GLuint boardIndexBuffer;
     
-    GLuint _myTexture;
+    GLuint _mentalTexture;
     GLuint _groundTexture;
     GLuint _woodTexture;
     GLuint _frameTexture;
@@ -92,10 +92,10 @@ typedef struct {
     GLuint _texCoordSlot;
 
     //VAOs are here
-    GLuint _objectA;
+    GLuint _cubeObj;
     GLuint _groundObj;
     GLuint _lampObj;
-    GLuint _grassObj;
+    GLuint _boardObj;
     GLuint _screenObj;
     
     //skybox vao
@@ -184,7 +184,7 @@ typedef struct {
     GLint _screenTextureSlot;
     
     ///////////////
-    GLuint _programHandle; //program be used to render, may have many programs.
+    GLuint _originProgram; //program be used to render, may have many programs.
     GLuint _lampProgram;
     GLuint _screenProgram; //for rendering from texture
     GLuint _skyBoxProgram;
@@ -253,7 +253,7 @@ typedef struct {
 
 - (void)setupRenderBuffer;
 - (void)setupDepthStencilBuffer;
-- (void)setupFrameBuffer;
+- (void)setupFrameBuffers;
 - (void)destoryRenderAndFrameBuffer;
 
 - (void)setupProjection;
