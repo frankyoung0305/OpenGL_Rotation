@@ -999,7 +999,10 @@ const GLubyte boardIndices[] = {
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
-//    glEnable(GL_CULL_FACE); //
+    glEnable(GL_DEPTH_TEST);//开启深度测试
+    glEnable(GL_CULL_FACE);//开启面剔除
+//    glCullFace(GL_FRONT);//剔除正面
+
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);

@@ -10,7 +10,6 @@
             ignoreCount = "0"
             continueAfterRunningActions = "No"
             filePath = "Rotation/myView.m"
-<<<<<<< HEAD
             timestampString = "551950270.730729"
             startingColumnNumber = "9223372036854775807"
             endingColumnNumber = "9223372036854775807"
@@ -50,15 +49,6 @@
             endingLineNumber = "145"
             landmarkName = "-setupDepthBuffer"
             landmarkType = "7">
-=======
-            timestampString = "551949547.628564"
-            startingColumnNumber = "9223372036854775807"
-            endingColumnNumber = "9223372036854775807"
-            startingLineNumber = "648"
-            endingLineNumber = "648"
-            landmarkName = "GLView"
-            landmarkType = "3">
->>>>>>> blendingLearning
          </BreakpointContent>
       </BreakpointProxy>
       <BreakpointProxy
