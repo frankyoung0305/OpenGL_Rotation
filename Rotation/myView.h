@@ -70,6 +70,8 @@ typedef struct {
     GLuint _msaaDepRenderBuffer;
     GLuint _msaaFramebuffer; //for MSAA
     
+    GLuint depthMap;//for depth mapping
+    GLuint depthMapFBO;// depth map frame buffer
     
     GLuint vertexBuffer;
     GLuint indexBuffer;
@@ -86,6 +88,7 @@ typedef struct {
     GLuint _frameTexture;
     GLuint _grassTexture;
     GLuint _windowTexture;
+    GLuint _floorTexture;
     
     GLuint _skyBoxTexture;
     
@@ -97,6 +100,10 @@ typedef struct {
     GLuint _lampObj;
     GLuint _boardObj;
     GLuint _screenObj;
+    
+    //vaos for depth mapping
+    GLuint _DgroundObj;
+    GLuint _DcubeObj;
     
     //skybox vao
     GLuint skyboxVAO;
@@ -189,6 +196,9 @@ typedef struct {
     GLuint _screenProgram; //for rendering from texture
     GLuint _skyBoxProgram;
     
+    GLuint _depthProgram;
+    GLuint _debugProgram;
+    
     ksMatrix4 _modelMatrix;
     ksMatrix4 _projectionMatrix;
     ksMatrix4 _lookViewMatrix;
@@ -236,6 +246,7 @@ typedef struct {
     Material metal;
     Material wood;
     Material ground;
+    Material floor;
 //lighting
     SpotLight spotLight;
     DirLight dirLight;
@@ -273,13 +284,12 @@ typedef struct {
 //- (void)loadVertexArray: (GLuint) VAID withProgram: (GLuint) programHandle;
 
 // set uniform for every render action(varies every time GPU renders)
-- (void)updateTransform;
+- (void)updateTransformAt: (GLuint)modelSlot;
 - (void)updateView;
 - (void)updateProjection;
 - (void)updateLight;
-- (void)updateMaterial;
+- (void)updateMaterialAtDiffSlot:(GLuint) diffSlot atSpecSlot:(GLuint) specSlot atShineSlot:(GLuint) shineSlot;
 
-- (void)updateLampTransform;
 
 //update vals that don't change while rendering
 - (void)inintScene;

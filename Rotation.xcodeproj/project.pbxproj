@@ -39,6 +39,11 @@
 		3CA461C520C8039D00B69F81 /* ksMatrix.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C120C8039D00B69F81 /* ksMatrix.c */; };
 		3CA461C620C8039D00B69F81 /* ksVector.c in Sources */ = {isa = PBXBuildFile; fileRef = 3CA461C220C8039D00B69F81 /* ksVector.c */; };
 		3CA65F7320C92C1D00B58A6A /* pic.png in Resources */ = {isa = PBXBuildFile; fileRef = 3CA65F7220C92C1D00B58A6A /* pic.png */; };
+		3CE1842620FC735200345AF1 /* floor.png in Resources */ = {isa = PBXBuildFile; fileRef = 3CE1842520FC735100345AF1 /* floor.png */; };
+		3CE1842820FC7C8000345AF1 /* depthVS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3CE1842720FC7C8000345AF1 /* depthVS.glsl */; };
+		3CE1842A20FC7CB600345AF1 /* depthFS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3CE1842920FC7CB600345AF1 /* depthFS.glsl */; };
+		3CE1842C20FC7D0700345AF1 /* debugVS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3CE1842B20FC7D0700345AF1 /* debugVS.glsl */; };
+		3CE1842E20FC7D3100345AF1 /* debugFS.glsl in Resources */ = {isa = PBXBuildFile; fileRef = 3CE1842D20FC7D3100345AF1 /* debugFS.glsl */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -102,6 +107,11 @@
 		3CA461C320C8039D00B69F81 /* ksVector.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksVector.h; sourceTree = "<group>"; };
 		3CA461C420C8039D00B69F81 /* ksMatrix.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ksMatrix.h; sourceTree = "<group>"; };
 		3CA65F7220C92C1D00B58A6A /* pic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = pic.png; sourceTree = "<group>"; };
+		3CE1842520FC735100345AF1 /* floor.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = floor.png; sourceTree = "<group>"; };
+		3CE1842720FC7C8000345AF1 /* depthVS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depthVS.glsl; sourceTree = "<group>"; };
+		3CE1842920FC7CB600345AF1 /* depthFS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = depthFS.glsl; sourceTree = "<group>"; };
+		3CE1842B20FC7D0700345AF1 /* debugVS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = debugVS.glsl; sourceTree = "<group>"; };
+		3CE1842D20FC7D3100345AF1 /* debugFS.glsl */ = {isa = PBXFileReference; lastKnownFileType = text; path = debugFS.glsl; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -152,6 +162,7 @@
 		3C9373F920C41E3D00A48C10 /* Rotation */ = {
 			isa = PBXGroup;
 			children = (
+				3CE1842520FC735100345AF1 /* floor.png */,
 				3C50C02720EC9B1C00F556DE /* back.png */,
 				3C50C02320EC9B1C00F556DE /* bottom.png */,
 				3C50C02220EC9B1B00F556DE /* front.png */,
@@ -166,6 +177,10 @@
 				3C308B2520D21945007E65DF /* metal.png */,
 				3C93743A20C5082A00A48C10 /* myView.m */,
 				3C5FBEBC20C54767002CB0B7 /* myView.h */,
+				3CE1842B20FC7D0700345AF1 /* debugVS.glsl */,
+				3CE1842D20FC7D3100345AF1 /* debugFS.glsl */,
+				3CE1842720FC7C8000345AF1 /* depthVS.glsl */,
+				3CE1842920FC7CB600345AF1 /* depthFS.glsl */,
 				3C50C01E20EB254C00F556DE /* skyBoxVS.glsl */,
 				3C50C02020EB256D00F556DE /* skyBoxFS.glsl */,
 				3C50C01020EA2CA800F556DE /* postProcessFS.glsl */,
@@ -321,6 +336,7 @@
 				3C50C02B20EC9B1C00F556DE /* left.png in Resources */,
 				3C308B2620D21946007E65DF /* metal.png in Resources */,
 				3C50C02120EB256D00F556DE /* skyBoxFS.glsl in Resources */,
+				3CE1842820FC7C8000345AF1 /* depthVS.glsl in Resources */,
 				3CA65F7320C92C1D00B58A6A /* pic.png in Resources */,
 				3C308B2A20D24E7E007E65DF /* wood.png in Resources */,
 				3C308B2C20D3905D007E65DF /* frame.png in Resources */,
@@ -336,6 +352,10 @@
 				3C50C00F20EA2C9400F556DE /* postProcessVS.glsl in Resources */,
 				3C50C02D20EC9B1C00F556DE /* back.png in Resources */,
 				3C27268920DB479D00D7B4AD /* lampVertex.glsl in Resources */,
+				3CE1842E20FC7D3100345AF1 /* debugFS.glsl in Resources */,
+				3CE1842C20FC7D0700345AF1 /* debugVS.glsl in Resources */,
+				3CE1842A20FC7CB600345AF1 /* depthFS.glsl in Resources */,
+				3CE1842620FC735200345AF1 /* floor.png in Resources */,
 				3C50C02820EC9B1C00F556DE /* front.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

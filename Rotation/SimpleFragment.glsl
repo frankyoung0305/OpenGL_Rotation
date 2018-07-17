@@ -68,10 +68,10 @@ void main(void) {
 
     vec3 result = CalcDirLight(dirLight, norm, viewDir);
 
-    for(int i = 0; i < NR_POINT_LIGHTS; i++)
-        result += CalcPointLight(pointLights[i], norm, worldPos, viewDir);
-
-    result += CalcSpotLight(spotLight, norm, worldPos, viewDir);
+//    for(int i = 0; i < NR_POINT_LIGHTS; i++)
+//        result += CalcPointLight(pointLights[i], norm, worldPos, viewDir);
+//
+//    result += CalcSpotLight(spotLight, norm, worldPos, viewDir);
 
     FragColor = vec4(result, 1.0) ;
     
@@ -93,11 +93,15 @@ void main(void) {
 vec3 CalcDirLight(DirLight light, vec3 normal, vec3 viewDir)
 {
     vec3 lightDir = normalize(-light.direction);
+    vec3 halfwayDir = normalize(lightDir + viewDir);
+
 
     float diff = max(dot(normal, lightDir), 0.0);
 
     vec3 reflectDir = reflect(-lightDir, normal);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+//    float spec = pow(max(dot(viewDir, reflectDir), 0.0), material.shininess);
+    float spec = pow(max(dot(normal, halfwayDir), 0.0), material.shininess);
+
 
     vec3 ambient  = light.ambient  * vec3(texture(material.diffuse, TexCoordOut));
     vec3 diffuse  = light.diffuse  * diff * vec3(texture(material.diffuse, TexCoordOut));

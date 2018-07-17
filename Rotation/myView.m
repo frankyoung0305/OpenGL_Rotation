@@ -19,10 +19,13 @@
 
 #define E_PI 3.1415926535897932384626433832795028841971693993751058209749445923078164062
 
+#define SHADOW_WIDTH  1024
+#define SHADOW_HEIGHT  1024
+
 ksVec3 cubePositions[] = {
-    { 0.0f,  0.0f,  0.0f },
-    { 2.0f,  5.0f, -15.0f},
-    {-1.5f, -2.2f, -2.5f },
+    { 0.0f,  1.5f,  0.0f },
+    { 2.0f,  0.0f,  1.0f},
+    {-1.0f,  0.0f,  2.0f },
     {-3.8f, -2.0f, -12.3f},
     { 2.4f, -0.4f, -3.5f },
     {-1.7f,  3.0f, -7.5f },
@@ -283,6 +286,30 @@ const GLubyte boardIndices[] = {
         NSLog(@"failed to make complete msaa framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
         exit(1);
     }
+    
+    /////////////////////////////////////////////////////////////setup depth mapping frame buffer
+    glGenFramebuffers(1, &depthMapFBO);
+
+    glGenTextures(1, &depthMap);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+    glBindTexture(GL_TEXTURE_2D, 0);
+    
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glFramebufferTexture2D(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, depthMap, 0);
+    GLenum none = GL_NONE;
+    glDrawBuffers(1, &none);
+    glReadBuffer(GL_NONE);
+    if(glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+    {
+        NSLog(@"failed to make complete depth mapping framebuffer object %x", glCheckFramebufferStatus(GL_FRAMEBUFFER));
+        exit(1);
+    }
+    glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 ////////////////////////////////////////////////////////////
 }
@@ -370,6 +397,9 @@ const GLubyte boardIndices[] = {
     [self initProgram:&_lampProgram withVS:@"lampVertex" andFS:@"lampFragment"];
     [self initProgram:&_screenProgram withVS:@"postProcessVS" andFS:@"postProcessFS"];
     [self initProgram:&_skyBoxProgram withVS:@"skyBoxVS" andFS:@"skyBoxFS"];
+    
+    [self initProgram:&_depthProgram withVS:@"depthVS" andFS:@"depthFS"];
+    [self initProgram:&_debugProgram withVS:@"debugVS" andFS:@"debugFS"];
     
     // 调用glGetAttribLocatuon来获取顶点着色器输入的入口，以便加入代码。同时调用glEnableVertexAttribArray方法，以顶点属性值作为参数，启用顶点属性（顶点属性默认是禁用的）。
     _positionSlot = glGetAttribLocation(_originProgram, "Position");
@@ -792,6 +822,31 @@ const GLubyte boardIndices[] = {
 
     glEnableVertexAttribArray(0);
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0);
+    
+    
+    //////////////////////////////////ground vao for depth mapping
+    glGenVertexArrays(1, &_DgroundObj);
+    
+    glBindVertexArray(_DgroundObj);
+    glBindBuffer(GL_ARRAY_BUFFER, groundVertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, groundIndexBuffer);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glEnableVertexAttribArray(0);
+    
+    glBindVertexArray(0);
+    
+    ////////////////////////////////////cube vao for depth mapping
+    glGenVertexArrays(1, &_DcubeObj);
+    
+    glBindVertexArray(_DcubeObj);
+    glBindBuffer(GL_ARRAY_BUFFER, vertexBuffer);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexBuffer);
+    
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, sizeof(Vertex), 0);
+    glEnableVertexAttribArray(0);
+    
+    glBindVertexArray(0);
 
 }
 
@@ -839,6 +894,7 @@ const GLubyte boardIndices[] = {
     _frameTexture = [self setupTexture:@"frame.png"];
     _grassTexture = [self setupTexture:@"grass.png"];
     _windowTexture = [self setupTexture:@"window.png"];
+    _floorTexture = [self setupTexture:@"floor.png"];
     
 //    glActiveTexture(GL_TEXTURE1); //激活纹理单元
 //    glBindTexture(GL_TEXTURE_2D, _mentalTexture);
@@ -856,6 +912,7 @@ const GLubyte boardIndices[] = {
     [self setupMaterial:&metal withDfsTexture:_mentalTexture spcTexture:_mentalTexture Shininess:256.0];
     [self setupMaterial:&ground withDfsTexture:_groundTexture spcTexture:_groundTexture Shininess:8.0];
     [self setupMaterial:&wood withDfsTexture:_woodTexture spcTexture:_frameTexture Shininess:256.0];
+    [self setupMaterial:&floor withDfsTexture:_floorTexture spcTexture:_floorTexture Shininess:64.0];
     
     ////////////////////setup cube map(sky box)
     glGenTextures(1, &_skyBoxTexture);
@@ -889,10 +946,7 @@ const GLubyte boardIndices[] = {
     ksPerspective(&_projectionMatrix, _sightAngleY, _aspect, _nearZ, _farZ);
     
 }
-- (void)updateLampProjection{
-
-}
-- (void)updateTransform
+- (void)updateTransformAt: (GLuint)modelSlot
 {
     // Generate a model view matrix to rotate/translate/scale
     //
@@ -905,15 +959,15 @@ const GLubyte boardIndices[] = {
     // Translate away from the viewer
     ksMatrixTranslate(&_modelMatrix, modelPos.x, modelPos.y, modelPos.z);
     // Load the model-view matrix(传送数据)
-    glUniformMatrix4fv(_modelSlot, 1, GL_FALSE, (GLfloat*)&_modelMatrix.m[0][0]);
+    glUniformMatrix4fv(modelSlot, 1, GL_FALSE, (GLfloat*)&_modelMatrix.m[0][0]);
 }
-- (void)updateLampTransform{
-    ksMatrixLoadIdentity(&_lampModelMatrix);
-    ksMatrixScale(&_lampModelMatrix, modelScale.x, modelScale.y, modelScale.z);
-    ksMatrixTranslate(&_lampModelMatrix, modelPos.x, modelPos.y, modelPos.z);
-    ksMatrixRotate(&_lampModelMatrix, _angle, modelRotate.x, modelRotate.y, modelRotate.z);
-    glUniformMatrix4fv(_lampModelSlot, 1, GL_FALSE, (GLfloat*)&_lampModelMatrix.m[0][0]);
-}
+//- (void)updateLampTransform{
+//    ksMatrixLoadIdentity(&_lampModelMatrix);
+//    ksMatrixScale(&_lampModelMatrix, modelScale.x, modelScale.y, modelScale.z);
+//    ksMatrixTranslate(&_lampModelMatrix, modelPos.x, modelPos.y, modelPos.z);
+//    ksMatrixRotate(&_lampModelMatrix, _angle, modelRotate.x, modelRotate.y, modelRotate.z);
+//    glUniformMatrix4fv(_lampModelSlot, 1, GL_FALSE, (GLfloat*)&_lampModelMatrix.m[0][0]);
+//}
 - (void)updateView{
     // Generate a view matrix
     ksMatrixLoadIdentity(&_lookViewMatrix);
@@ -926,11 +980,12 @@ const GLubyte boardIndices[] = {
     ksLookAt(&_lookViewMatrix, &viewEye, &viewTgt, &up);
 
     //load eye position uniform
-    glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
+//    glUniform3f(_eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
-- (void)updateLampView{
-//    glUniformMatrix4fv(_lampLookViewSlot, 1, GL_FALSE, (GLfloat*)&_lookViewMatrix.m[0][0]);
+- (void)updateEyePosAt:(GLuint) eyePosSlot{
+    glUniform3f(eyePosSlot, viewEye.x, viewEye.y, viewEye.z);
 }
+
 - (void) updateLight{
     //update directional light para
     glUniform3f(_dirLightDircSlot, dirLight.direction.x, dirLight.direction.y, dirLight.direction.z);
@@ -983,92 +1038,186 @@ const GLubyte boardIndices[] = {
     glUniform1f(_spotLightOuterCutOffSlot, spotLight.outerCutOff);
 }
 
-- (void) updateMaterial{
+- (void) updateMaterialAtDiffSlot:(GLuint) diffSlot atSpecSlot:(GLuint) specSlot atShineSlot:(GLuint) shineSlot{
     //update material para
     glActiveTexture(GL_TEXTURE0);
     glBindTexture(GL_TEXTURE_2D, material._difsLightingMap);
-    glUniform1i(_diffuseMapSlot, 0);
+    glUniform1i(diffSlot, 0);
     glActiveTexture(GL_TEXTURE1);
     glBindTexture(GL_TEXTURE_2D, material._spclLightingMap);
-    glUniform1i(_specularMapSlot, 1);
+    glUniform1i(specSlot, 1);
 //    glUniform1i(_diffuseMapSlot, material._difsLightingMap);
 //    glUniform1i(_specularMapSlot, material._spclLightingMap);
-    glUniform1f(_shininessSlot, material._shininess);
+    glUniform1f(shineSlot, material._shininess);
 }
 
 ///////////////////////////////////////////////////////////
 
 - (void)inintScene{
     glEnable(GL_DEPTH_TEST);//开启深度测试
-    glEnable(GL_CULL_FACE);//开启面剔除
+//    glEnable(GL_CULL_FACE);//开启面剔除
 //    glCullFace(GL_FRONT);//剔除正面
 
     //set viewport
     //使用glViewport设置UIView的一部分来进行渲染
-    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+//    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     //setup lighting program first
-    glUseProgram(_originProgram);
+//    glUseProgram(_originProgram);
     //static light spot
-    //set light source position
-    spotLight.position.x = 0.0f;
-    spotLight.position.y = 0.0f;
-    spotLight.position.z = 0.0f;
+//    //set light source position
+//    spotLight.position.x = 0.0f;
+//    spotLight.position.y = 0.0f;
+//    spotLight.position.z = 0.0f;
+//
+//    spotLight.direction.x = 0.0f;
+//    spotLight.direction.y = 0.0f;
+//    spotLight.direction.z = -1.0f;
+//
+//    //set Attenuation(衰减)
+//    spotLight.constant = 1.0f;
+//    spotLight.linear = 0.09f;
+//    spotLight.quadratic = 0.032f;
+//    //light color
+//    ksVec3 lightColor = {1.0, 1.0, 1.0};
+//    ksVec3 abntIndex = {0.1, 0.1, 0.1};
+//    ksVec3 difsIndex = {0.9, 0.9, 0.9};
     
-    spotLight.direction.x = 0.0f;
-    spotLight.direction.y = 0.0f;
-    spotLight.direction.z = -1.0f;
+//    lightColor.x = 1.0;
+//    lightColor.y = 1.0;
+//    lightColor.z = 1.0;
+//    //varing light color
+//    //    static float colorAngle = 0;
+//    //    lightColor.x = sinf(colorAngle * 2.0);
+//    //    lightColor.y = sinf(colorAngle * 0.7);
+//    //    lightColor.z = sinf(colorAngle * 1.3);
+//    //    colorAngle += 0.01;
+//    fyVectorGLSLProduct(&spotLight.ambient, &lightColor, &abntIndex);
+//    fyVectorGLSLProduct(&spotLight.diffuse, &lightColor, &difsIndex);
+//
+//    spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
+//    spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
+//    [self updateLight]; //static light
     
-    //set Attenuation(衰减)
-    spotLight.constant = 1.0f;
-    spotLight.linear = 0.09f;
-    spotLight.quadratic = 0.032f;
-    //light color
-    ksVec3 lightColor = {1.0, 1.0, 1.0};
-    ksVec3 abntIndex = {0.1, 0.1, 0.1};
-    ksVec3 difsIndex = {0.9, 0.9, 0.9};
-    
-    lightColor.x = 1.0;
-    lightColor.y = 1.0;
-    lightColor.z = 1.0;
-    //varing light color
-    //    static float colorAngle = 0;
-    //    lightColor.x = sinf(colorAngle * 2.0);
-    //    lightColor.y = sinf(colorAngle * 0.7);
-    //    lightColor.z = sinf(colorAngle * 1.3);
-    //    colorAngle += 0.01;
-    fyVectorGLSLProduct(&spotLight.ambient, &lightColor, &abntIndex);
-    fyVectorGLSLProduct(&spotLight.diffuse, &lightColor, &difsIndex);
-    
-    spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
-    spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
-    [self updateLight]; //static light
-    
-    //look at the same spot
-    viewTgt.x = 0;
-    viewTgt.y = 0;
-    viewTgt.z = 0;
-    [self updateView];
-    [self updateProjection];// 更新投影矩阵
-    
-    //update data in the ubo
-    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ksMatrix4), (GLfloat*)&_projectionMatrix.m[0][0]);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+//    //look at the same spot
+//    viewTgt.x = 0;
+//    viewTgt.y = 0;
+//    viewTgt.z = 0;
+//    [self updateView];
+//    [self updateProjection];// 更新投影矩阵
+//
+//    //update data in the ubo
+//    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+//    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ksMatrix4), (GLfloat*)&_projectionMatrix.m[0][0]);
+//    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
     //then setup lamp program
-    glUseProgram(_lampProgram);
-    [self updateLampView];
+//    glUseProgram(_lampProgram);
+//    [self updateLampView];
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
+- (void)drawSceneToDepthShader{
+    glUseProgram(_depthProgram);//change
+//    glUseProgram(_originProgram);
+
+
+    glBindVertexArray(_DgroundObj);
+//    material = floor;
+//    [self updateMaterialAtDiffSlot:_diffuseMapSlot atSpecSlot:_specularMapSlot atShineSlot:_shininessSlot]; //change
+    modelPos.x = 0;
+    modelPos.y = -0.5;
+    modelPos.z = 0;
+    modelScale.x = 25.0f;
+    modelScale.y = 25.0f;
+    modelScale.z = 25.0f;
+    _angle = 0;
+    [self updateTransformAt:glGetUniformLocation(_depthProgram, "model")];//change
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);
+
+
+    ///////////////////////////////
+    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+    glBindVertexArray(_DcubeObj);
+    //applying  texture
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
+//    material = floor;
+//    [self updateMaterialAtDiffSlot:_diffuseMapSlot atSpecSlot:_specularMapSlot atShineSlot:_shininessSlot]; //all cubes using same material
+
+    //use sky box texture to perform environment reflection
+//    glActiveTexture(GL_TEXTURE8);
+//    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+//    glUniform1i(glGetUniformLocation(_originProgram, "skybox"), 8);
+    /////////////////
+
+    for(unsigned int i = 0; i < 3; i++)
+    {
+        modelPos = cubePositions[i];
+
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
+        float angle = 20.0f * i;
+        _angle = angle;
+        modelScale.x = 0.5f;
+        modelScale.y = 0.5f;
+        modelScale.z = 0.5f;
+        [self updateTransformAt:glGetUniformLocation(_depthProgram, "model")];
+        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
+        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    }
+////    //use draw instance
+////    modelScale.x = 0.5f;
+////    modelScale.y = 0.5f;
+////    modelScale.z = 0.5f;
+////    [self updateTransformAt:_modelSlot];
+////    //use DrawInstanced to draw lots of cubes at one glDraw call:
+////    glDrawElementsInstanced(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0, 10);
+
+    glBindVertexArray(0);//unbind vao
+
+}
+////////////////////////////////////////////////draw debug
+unsigned int quadVAO = 0;
+unsigned int quadVBO;
+void renderQuad()
+{
+    if (quadVAO == 0)
+    {
+        float quadVertices[] = {
+            // positions        // texture Coords
+            -1.0f,  1.0f, 0.0f, 0.0f, 1.0f,
+            -1.0f, -1.0f, 0.0f, 0.0f, 0.0f,
+            1.0f,  1.0f, 0.0f, 1.0f, 1.0f,
+            1.0f, -1.0f, 0.0f, 1.0f, 0.0f,
+        };
+        // setup plane VAO
+        glGenVertexArrays(1, &quadVAO);
+        glGenBuffers(1, &quadVBO);
+        glBindVertexArray(quadVAO);
+        glBindBuffer(GL_ARRAY_BUFFER, quadVBO);
+        glBufferData(GL_ARRAY_BUFFER, sizeof(quadVertices), &quadVertices, GL_STATIC_DRAW);
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)0);
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 5 * sizeof(float), (void*)(3 * sizeof(float)));
+    }
+    glBindVertexArray(quadVAO);
+    glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+    glBindVertexArray(0);
+}
+/////////////////////////////
 
 - (void)render {  //render func for shader
 //    glBindFramebuffer(GL_FRAMEBUFFER, _textureFrameBuffer);// render to texture
     
-    /////////////////////////render to MSAA fbo
-    glBindFramebuffer(GL_FRAMEBUFFER, _msaaFramebuffer);
-    glBindRenderbuffer(GL_RENDERBUFFER, _msaaColorRenderBuffer);
+//    /////////////////////////render to MSAA fbo
+//    glBindFramebuffer(GL_FRAMEBUFFER, _msaaFramebuffer);
+//    glBindRenderbuffer(GL_RENDERBUFFER, _msaaColorRenderBuffer);
+//    glBindFramebuffer(GL_FRAMEBUFFER, _originFramebuffer);
     ///////////////////////
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
@@ -1083,9 +1232,9 @@ const GLubyte boardIndices[] = {
     // 得到着色器程序对象后，我们可以调用 glUseProgram 函数，用刚创建的程序对象作为它的参数，以激活这个程序对象。
     // 告诉OpenGL在获得顶点信息后，调用刚才的程序来处理
     //use lighting program to render cubes
-    glUseProgram(_originProgram);
+//    glUseProgram(_originProgram);
  
-    //set view parameters
+//    //set view parameters
 //    //fixed eye:
 //    viewEye.x = 0.0;
 //    viewEye.y = 0.0;
@@ -1098,92 +1247,93 @@ const GLubyte boardIndices[] = {
 //    viewTgt.z = -viewRotateRad*sinf(viewRotateAngle);
 //    viewRotateAngle += 0.01;
 
-    
-    
-//    fixed target:
-    viewTgt.x = 0.0;
-    viewTgt.y = 0.0;
-    viewTgt.z = 0.0;
-    static float viewRotateAngle = 0.33 * E_PI;
-    float viewRotateRad = 3.0;
-    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
-    viewTgt.y     = 0.0f;
-//    viewEye.y = -viewRotateRad*sinf(viewRotateAngle);
-    viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
-    viewRotateAngle += 0.01;
+////    fixed target:
+//    viewTgt.x = 0.0;
+//    viewTgt.y = 0.0;
+//    viewTgt.z = 0.0;
+//    static float viewRotateAngle = 0.33 * E_PI;
+//    float viewRotateRad = 15.0;
+//    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
+//    viewEye.y     = 0.0f;
+////    viewEye.y = -viewRotateRad*sinf(viewRotateAngle);
+//    viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
+//    viewRotateAngle += 0.01;
+//    [self updateView];
 
-/////use ubo to update view mat
-    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(ksMatrix4), sizeof(ksMatrix4), (GLvoid*)&_lookViewMatrix.m[0][0]);
-    glBindBuffer(GL_UNIFORM_BUFFER, 0);
-
-    
-    [self updateView];
-
-    spotLight.position = viewEye; //light from eye
-    spotLight.direction.x = viewTgt.x - viewEye.x; //light point at tgt
-    spotLight.direction.y = viewTgt.y - viewEye.y;
-    spotLight.direction.z = viewTgt.z - viewEye.z;
-    glUniform3f(_spotLightPositionSlot, spotLight.position.x, spotLight.position.y, spotLight.position.z); //update uinform
-    glUniform3f(_spotLightDircSlot, spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
-    
-//    /////////////////////////////ground
-//    glBindVertexArray(_groundObj);
-//    material = ground;
-//    [self updateMaterial];
-//    modelPos.y = -1;
-//    modelScale.x = 10.0f;
-//    modelScale.y = 10.0f;
-//    modelScale.z = 10.0f;
-//    [self updateTransform];
-//    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-//    glBindVertexArray(0);
-
-    
-    ///////////////////////////////
-    glUseProgram(_originProgram);
-    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
-    glBindVertexArray(_cubeObj);
-    //applying  texture
-    //    glActiveTexture(GL_TEXTURE0);
-    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
-    material = wood;
-    [self updateMaterial]; //all cubes using same material
-    
-    //use sky box texture to perform environment reflection
-    glActiveTexture(GL_TEXTURE8);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
-    glUniform1i(glGetUniformLocation(_originProgram, "skybox"), 8);
-    /////
-    
-//    for(unsigned int i = 0; i < 10; i++)
-//    {
-//        modelPos = cubePositions[i];
+///////use ubo to update view mat
+//    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+//    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(ksMatrix4), sizeof(ksMatrix4), (GLvoid*)&_lookViewMatrix.m[0][0]);
+//    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 //
-//        modelRotate.x = 1.0f;
-//        modelRotate.y = 0.3f;
-//        modelRotate.z = 0.5f;
-//        float angle = 20.0f * i;
-//        _angle = angle;
-//        modelScale.x = 0.5f;
-//        modelScale.y = 0.5f;
-//        modelScale.z = 0.5f;
-//        [self updateTransform];
-//        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
-//        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
-//        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
-//    }
+//    [self updateEyePosAt:_eyePosSlot];
+
+//    spotLight.position = viewEye; //light from eye
+//    spotLight.direction.x = viewTgt.x - viewEye.x; //light point at tgt
+//    spotLight.direction.y = viewTgt.y - viewEye.y;
+//    spotLight.direction.z = viewTgt.z - viewEye.z;
+//    glUniform3f(_spotLightPositionSlot, spotLight.position.x, spotLight.position.y, spotLight.position.z); //update uinform
+//    glUniform3f(_spotLightDircSlot, spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
     
-    //use draw instance
-    modelScale.x = 0.5f;
-    modelScale.y = 0.5f;
-    modelScale.z = 0.5f;
-    [self updateTransform];
-    //use DrawInstanced to draw lots of cubes at one glDraw call:
-    glDrawElementsInstanced(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0, 10);
+//    [self drawSceneToDepthShader];
+
+    /////////////////////////////////////////////////////render depth map
+    // 1. render depth of scene to texture (from light's perspective)
+    // --------------------------------------------------------------
+    ksMatrix4 lightProjection, lightView;
+    ksMatrix4 lightSpaceMatrix;
+    float near_plane = 1.0f, far_plane = 7.5f;
+    ksMatrixLoadIdentity(&lightProjection);
+    ksMatrixLoadIdentity(&lightView);
+    ksMatrixLoadIdentity(&lightSpaceMatrix);
     
-    glBindVertexArray(0);//unbind vao
-//
+//    lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
+    ksOrtho(&lightProjection, -10.0, 10.0, -10.0, 10.0, near_plane, far_plane);
+//    ksPerspective(&lightProjection, _sightAngleY, _aspect, near_plane, far_plane);
+//    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+    ksVec3 up, lightPos, lightTgt;
+    up.x = 0.0;
+    up.y = 1.0;
+    up.z = 0.0;
+    lightPos.x = -2.0;
+    lightPos.y = 4.0;
+    lightPos.z = -1.0;
+    lightTgt.x = lightTgt.y = lightTgt.z = 0.0;
+    
+    ksLookAt(&lightView, &lightPos, &lightTgt, &up);
+//    lightSpaceMatrix = lightProjection * lightView;
+    ksMatrixMultiply(&lightSpaceMatrix, &lightView, &lightProjection);//列主序乘法 行主序乘法 交换两个乘数位置
+    // render scene from light's point of view
+//    simpleDepthShader.use();
+    glUseProgram(_depthProgram);
+    //    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+    glUniformMatrix4fv(glGetUniformLocation(_depthProgram, "lightSpaceMatrix"), 1, GL_FALSE, (GLfloat*)&lightSpaceMatrix.m[0][0]);
+    
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
+    glClear(GL_DEPTH_BUFFER_BIT);
+//    renderScene(simpleDepthShader);
+    [self drawSceneToDepthShader];
+    
+    // reset viewport
+    glBindFramebuffer(GL_FRAMEBUFFER, _originFramebuffer);
+    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    
+    // render Depth map to quad for visual debugging
+    // ---------------------------------------------
+//    debugDepthQuad.use();
+    glUseProgram(_debugProgram);
+//    debugDepthQuad.setFloat("near_plane", near_plane);
+    glUniform1f(glGetUniformLocation(_debugProgram, "near_plane"), near_plane);
+//    debugDepthQuad.setFloat("far_plane", far_plane);
+    glUniform1f(glGetUniformLocation(_debugProgram, "far_plane"), far_plane);
+    glActiveTexture(GL_TEXTURE0);
+    glBindTexture(GL_TEXTURE_2D, depthMap);
+    renderQuad();
+    
+    /////////////////////////////////////////////////////////
+    
+    
 //    //then use lamp program to render grass
 //    glUseProgram(_lampProgram);
 //    glBindVertexArray(_grassObj);
@@ -1204,19 +1354,19 @@ const GLubyte boardIndices[] = {
 //    }
 //    glBindVertexArray(0);//unbind vao
     ///////////////////////////////////////////
-    // draw skybox at last
-    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
-    glUseProgram(_skyBoxProgram);
-
-    
-    // skybox cube
-    glBindVertexArray(skyboxVAO);
-    glActiveTexture(GL_TEXTURE0);
-    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
-//    glUniform1i(glGetUniformLocation(_skyBoxProgram, "skybox"), 0);   //optional, uniform of sampler2D is 0 by defalut
-    glDrawArrays(GL_TRIANGLES, 0, 36);
-    glBindVertexArray(0);
-    glDepthFunc(GL_LESS); // set depth function back to default
+//    // draw skybox at last
+//    glDepthFunc(GL_LEQUAL);  // change depth function so depth test passes when values are equal to depth buffer's content
+//    glUseProgram(_skyBoxProgram);
+//
+//
+//    // skybox cube
+//    glBindVertexArray(skyboxVAO);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+////    glUniform1i(glGetUniformLocation(_skyBoxProgram, "skybox"), 0);   //optional, uniform of sampler2D is 0 by defalut
+//    glDrawArrays(GL_TRIANGLES, 0, 36);
+//    glBindVertexArray(0);
+//    glDepthFunc(GL_LESS); // set depth function back to default
 
 //    ///////////////////////////////////////////////drawing to screen
 //    glBindFramebuffer(GL_FRAMEBUFFER, _framebuffer);
@@ -1233,19 +1383,19 @@ const GLubyte boardIndices[] = {
 //    glBindVertexArray(0); //unbind
 //
     
-    ////////////////////////////////////////////copy MSAA fbo to screen fbo
-    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _originFramebuffer);
-    glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaaFramebuffer);
-    // OpenGL ES3.0 Core multisampling
-    
-    // Discard the depth buffer from the read fbo. It is no more necessary.
-    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_DEPTH_ATTACHMENT});
-    
-    // Copy the read fbo(multisampled framebuffer) to the draw fbo(single-sampled framebuffer)
-    glBlitFramebuffer(0, 0, self.frame.size.width, self.frame.size.height, 0, 0, self.frame.size.width, self.frame.size.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
-    
-    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_COLOR_ATTACHMENT0});
-    
+//    ////////////////////////////////////////////copy MSAA fbo to screen fbo
+//    glBindFramebuffer(GL_DRAW_FRAMEBUFFER, _originFramebuffer);
+//    glBindFramebuffer(GL_READ_FRAMEBUFFER, _msaaFramebuffer);
+//    // OpenGL ES3.0 Core multisampling
+//
+//    // Discard the depth buffer from the read fbo. It is no more necessary.
+//    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_DEPTH_ATTACHMENT});
+//
+//    // Copy the read fbo(multisampled framebuffer) to the draw fbo(single-sampled framebuffer)
+//    glBlitFramebuffer(0, 0, self.frame.size.width, self.frame.size.height, 0, 0, self.frame.size.width, self.frame.size.height, GL_COLOR_BUFFER_BIT, GL_NEAREST);
+//
+//    glInvalidateFramebuffer(GL_READ_FRAMEBUFFER, 1, (GLenum[]){GL_COLOR_ATTACHMENT0});
+//
 
 
     //count fps
