@@ -532,9 +532,9 @@ const GLubyte boardIndices[] = {
     material._spclLightingMap = 0;
     material._shininess = 32.0; //init material
 
-    dirLight.direction.x = -0.2;
-    dirLight.direction.y = -1.0;
-    dirLight.direction.z = -0.3;
+    dirLight.direction.x = 2.0;
+    dirLight.direction.y = -4.0;
+    dirLight.direction.z = 1.0;
     dirLight.ambient.x = 0.1;
     dirLight.ambient.y = 0.1;
     dirLight.ambient.z = 0.1;
@@ -1159,8 +1159,9 @@ const GLubyte boardIndices[] = {
         modelRotate.x = 1.0f;
         modelRotate.y = 0.3f;
         modelRotate.z = 0.5f;
-        float angle = 20.0f * i;
-        _angle = angle;
+//        float angle = 20.0f * i;
+//        _angle = angle;
+        _angle = 0.0;
         modelScale.x = 0.5f;
         modelScale.y = 0.5f;
         modelScale.z = 0.5f;
@@ -1221,6 +1222,7 @@ void renderQuad()
     ///////////////////////
     
     glClearColor(0.07, 0.07, 0.07, 1.0);
+    glDepthRangef(0.0, 1.0);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT);//stencil bit all set to 0x1
     //    glEnable(GL_STENCIL_TEST);//开启模版测试
     glEnable(GL_DEPTH_TEST);//开启深度测试
@@ -1291,9 +1293,9 @@ void renderQuad()
 //    ksPerspective(&lightProjection, _sightAngleY, _aspect, near_plane, far_plane);
 //    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     ksVec3 up, lightPos, lightTgt;
-    up.x = 0.0;
+    up.x = 1.0;
     up.y = 1.0;
-    up.z = 0.0;
+    up.z = 1.0;
     lightPos.x = -2.0;
     lightPos.y = 4.0;
     lightPos.z = -1.0;
@@ -1308,7 +1310,8 @@ void renderQuad()
     //    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     glUniformMatrix4fv(glGetUniformLocation(_depthProgram, "lightSpaceMatrix"), 1, GL_FALSE, (GLfloat*)&lightSpaceMatrix.m[0][0]);
     
-    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);
+    glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);//x,y:-1,1 ->> color buffer
+    glDepthRangef(0.0, 1.0);//z:-1~1  ->>  depth buffer
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 //    renderScene(simpleDepthShader);
