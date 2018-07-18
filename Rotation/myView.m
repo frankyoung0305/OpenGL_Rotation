@@ -295,8 +295,12 @@ const GLubyte boardIndices[] = {
     glTexImage2D(GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT16, SHADOW_WIDTH, SHADOW_HEIGHT, 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_SHORT, NULL);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_REF_TO_TEXTURE );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
     glBindTexture(GL_TEXTURE_2D, 0);
     
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
@@ -519,7 +523,7 @@ const GLubyte boardIndices[] = {
 - (void)setupLookView{
     viewEye.x = 0;
     viewEye.y = 0;
-    viewEye.z = 0;
+    viewEye.z = 3.0;
     
     viewTgt.x = 0;
     viewTgt.y = 0;
@@ -1062,53 +1066,53 @@ const GLubyte boardIndices[] = {
     //使用glViewport设置UIView的一部分来进行渲染
 //    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     //setup lighting program first
-//    glUseProgram(_originProgram);
-    //static light spot
-//    //set light source position
-//    spotLight.position.x = 0.0f;
-//    spotLight.position.y = 0.0f;
-//    spotLight.position.z = 0.0f;
-//
-//    spotLight.direction.x = 0.0f;
-//    spotLight.direction.y = 0.0f;
-//    spotLight.direction.z = -1.0f;
-//
-//    //set Attenuation(衰减)
-//    spotLight.constant = 1.0f;
-//    spotLight.linear = 0.09f;
-//    spotLight.quadratic = 0.032f;
-//    //light color
-//    ksVec3 lightColor = {1.0, 1.0, 1.0};
-//    ksVec3 abntIndex = {0.1, 0.1, 0.1};
-//    ksVec3 difsIndex = {0.9, 0.9, 0.9};
+    glUseProgram(_originProgram);
+//    static light spot
+    //set light source position
+    spotLight.position.x = 0.0f;
+    spotLight.position.y = 0.0f;
+    spotLight.position.z = 0.0f;
+
+    spotLight.direction.x = 0.0f;
+    spotLight.direction.y = 0.0f;
+    spotLight.direction.z = -1.0f;
+
+    //set Attenuation(衰减)
+    spotLight.constant = 1.0f;
+    spotLight.linear = 0.09f;
+    spotLight.quadratic = 0.032f;
+    //light color
+    ksVec3 lightColor = {1.0, 1.0, 1.0};
+    ksVec3 abntIndex = {0.1, 0.1, 0.1};
+    ksVec3 difsIndex = {0.9, 0.9, 0.9};
     
-//    lightColor.x = 1.0;
-//    lightColor.y = 1.0;
-//    lightColor.z = 1.0;
-//    //varing light color
-//    //    static float colorAngle = 0;
-//    //    lightColor.x = sinf(colorAngle * 2.0);
-//    //    lightColor.y = sinf(colorAngle * 0.7);
-//    //    lightColor.z = sinf(colorAngle * 1.3);
-//    //    colorAngle += 0.01;
-//    fyVectorGLSLProduct(&spotLight.ambient, &lightColor, &abntIndex);
-//    fyVectorGLSLProduct(&spotLight.diffuse, &lightColor, &difsIndex);
-//
-//    spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
-//    spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
-//    [self updateLight]; //static light
+    lightColor.x = 1.0;
+    lightColor.y = 1.0;
+    lightColor.z = 1.0;
+    //varing light color
+    //    static float colorAngle = 0;
+    //    lightColor.x = sinf(colorAngle * 2.0);
+    //    lightColor.y = sinf(colorAngle * 0.7);
+    //    lightColor.z = sinf(colorAngle * 1.3);
+    //    colorAngle += 0.01;
+    fyVectorGLSLProduct(&spotLight.ambient, &lightColor, &abntIndex);
+    fyVectorGLSLProduct(&spotLight.diffuse, &lightColor, &difsIndex);
+
+    spotLight.cutOff = cosf(20.0 / 180.0 * E_PI);
+    spotLight.outerCutOff = cosf(25.0 / 180.0 * E_PI);
+    [self updateLight]; //static light
     
 //    //look at the same spot
 //    viewTgt.x = 0;
 //    viewTgt.y = 0;
 //    viewTgt.z = 0;
 //    [self updateView];
-//    [self updateProjection];// 更新投影矩阵
-//
-//    //update data in the ubo
-//    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
-//    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ksMatrix4), (GLfloat*)&_projectionMatrix.m[0][0]);
-//    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+    [self updateProjection];// 更新投影矩阵
+
+    //update data in the ubo
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, 0, sizeof(ksMatrix4), (GLfloat*)&_projectionMatrix.m[0][0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
 
 
     //then setup lamp program
@@ -1120,7 +1124,6 @@ const GLubyte boardIndices[] = {
 - (void)drawSceneToDepthShader{
     glUseProgram(_depthProgram);//change
 //    glUseProgram(_originProgram);
-
 
     glBindVertexArray(_DgroundObj);
 //    material = floor;
@@ -1181,6 +1184,71 @@ const GLubyte boardIndices[] = {
     glBindVertexArray(0);//unbind vao
 
 }
+//////////////////////////////////////////////////////////////////////////////////////////
+- (void)drawSceneToOriginShader{
+    glUseProgram(_originProgram);//change
+    //    glUseProgram(_originProgram);
+    
+    
+    glBindVertexArray(_groundObj);
+    //    material = floor;
+    //    [self updateMaterialAtDiffSlot:_diffuseMapSlot atSpecSlot:_specularMapSlot atShineSlot:_shininessSlot]; //change
+    modelPos.x = 0;
+    modelPos.y = -0.5;
+    modelPos.z = 0;
+    modelScale.x = 25.0f;
+    modelScale.y = 25.0f;
+    modelScale.z = 25.0f;
+    _angle = 0;
+    [self updateTransformAt:_modelSlot];//change
+    glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    glBindVertexArray(0);
+    
+    
+    ///////////////////////////////
+    // 一般当你打算绘制多个物体时，你首先要生成/配置所有的VAO（和必须的VBO及属性指针)，然后储存它们供后面使用。当我们打算绘制物体的时候就拿出相应的VAO，绑定它，绘制完物体后，再解绑VAO。
+    glBindVertexArray(_cubeObj);
+    //applying  texture
+    //    glActiveTexture(GL_TEXTURE0);
+    //    glBindTexture(GL_TEXTURE_2D, _myTexture);
+    //    material = floor;
+    //    [self updateMaterialAtDiffSlot:_diffuseMapSlot atSpecSlot:_specularMapSlot atShineSlot:_shininessSlot]; //all cubes using same material
+    
+    //use sky box texture to perform environment reflection
+    //    glActiveTexture(GL_TEXTURE8);
+    //    glBindTexture(GL_TEXTURE_CUBE_MAP, _skyBoxTexture);
+    //    glUniform1i(glGetUniformLocation(_originProgram, "skybox"), 8);
+    /////////////////
+    
+    for(unsigned int i = 0; i < 3; i++)
+    {
+        modelPos = cubePositions[i];
+        
+        modelRotate.x = 1.0f;
+        modelRotate.y = 0.3f;
+        modelRotate.z = 0.5f;
+        //        float angle = 20.0f * i;
+        //        _angle = angle;
+        _angle = 0.0;
+        modelScale.x = 0.5f;
+        modelScale.y = 0.5f;
+        modelScale.z = 0.5f;
+        [self updateTransformAt:_modelSlot];
+        //调用glDrawElements。这最终会为传入的每个顶点调用顶点着色器，然后为将要显示的像素调用片段着色器。
+        //参数：1绘制顶点的方式（GL_TRIANGLES, GL_LINES, GL_POINTS, etc.）, 2需要渲染的顶点个数，3索引数组中每个索引的数据类型，4（使用了已经传入GL_ELEMENT_ARRAY_BUFFER的索引数组）指向索引的指针。
+        glDrawElements(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0);
+    }
+    ////    //use draw instance
+    ////    modelScale.x = 0.5f;
+    ////    modelScale.y = 0.5f;
+    ////    modelScale.z = 0.5f;
+    ////    [self updateTransformAt:_modelSlot];
+    ////    //use DrawInstanced to draw lots of cubes at one glDraw call:
+    ////    glDrawElementsInstanced(GL_TRIANGLES, sizeof(Indices)/sizeof(Indices[0]), GL_UNSIGNED_BYTE, 0, 10);
+    
+    glBindVertexArray(0);//unbind vao
+}
+
 ////////////////////////////////////////////////draw debug
 unsigned int quadVAO = 0;
 unsigned int quadVBO;
@@ -1276,7 +1344,6 @@ void renderQuad()
 //    glUniform3f(_spotLightPositionSlot, spotLight.position.x, spotLight.position.y, spotLight.position.z); //update uinform
 //    glUniform3f(_spotLightDircSlot, spotLight.direction.x, spotLight.direction.y, spotLight.direction.z);
     
-//    [self drawSceneToDepthShader];
 
     /////////////////////////////////////////////////////render depth map
     // 1. render depth of scene to texture (from light's perspective)
@@ -1288,10 +1355,8 @@ void renderQuad()
     ksMatrixLoadIdentity(&lightView);
     ksMatrixLoadIdentity(&lightSpaceMatrix);
     
-//    lightProjection = glm::ortho(-10.0f, 10.0f, -10.0f, 10.0f, near_plane, far_plane);
     ksOrtho(&lightProjection, -10.0, 10.0, -10.0, 10.0, near_plane, far_plane);
 //    ksPerspective(&lightProjection, _sightAngleY, _aspect, near_plane, far_plane);
-//    lightView = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
     ksVec3 up, lightPos, lightTgt;
     up.x = 1.0;
     up.y = 1.0;
@@ -1302,12 +1367,9 @@ void renderQuad()
     lightTgt.x = lightTgt.y = lightTgt.z = 0.0;
     
     ksLookAt(&lightView, &lightPos, &lightTgt, &up);
-//    lightSpaceMatrix = lightProjection * lightView;
     ksMatrixMultiply(&lightSpaceMatrix, &lightView, &lightProjection);//列主序乘法 行主序乘法 交换两个乘数位置
     // render scene from light's point of view
-//    simpleDepthShader.use();
     glUseProgram(_depthProgram);
-    //    simpleDepthShader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
     glUniformMatrix4fv(glGetUniformLocation(_depthProgram, "lightSpaceMatrix"), 1, GL_FALSE, (GLfloat*)&lightSpaceMatrix.m[0][0]);
     
     glViewport(0, 0, SHADOW_WIDTH, SHADOW_HEIGHT);//x,y:-1,1 ->> color buffer
@@ -1315,24 +1377,79 @@ void renderQuad()
     glBindFramebuffer(GL_FRAMEBUFFER, depthMapFBO);
     glClear(GL_DEPTH_BUFFER_BIT);
 //    renderScene(simpleDepthShader);
+    glCullFace(GL_FRONT);
     [self drawSceneToDepthShader];
+    glCullFace(GL_BACK);
+
     
     // reset viewport
     glBindFramebuffer(GL_FRAMEBUFFER, _originFramebuffer);
     glViewport(0, 0, self.frame.size.width, self.frame.size.height);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    // 2. render scene as normal using the generated depth/shadow map
+    // --------------------------------------------------------------
+    glViewport(0, 0, self.frame.size.width, self.frame.size.height);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+//    shader.use();
+    glUseProgram(_originProgram);
+//    glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+//    glm::mat4 view = camera.GetViewMatrix();
+//    shader.setMat4("projection", projection);
+//    shader.setMat4("view", view);
     
-    // render Depth map to quad for visual debugging
-    // ---------------------------------------------
-//    debugDepthQuad.use();
-    glUseProgram(_debugProgram);
-//    debugDepthQuad.setFloat("near_plane", near_plane);
-    glUniform1f(glGetUniformLocation(_debugProgram, "near_plane"), near_plane);
-//    debugDepthQuad.setFloat("far_plane", far_plane);
-    glUniform1f(glGetUniformLocation(_debugProgram, "far_plane"), far_plane);
-    glActiveTexture(GL_TEXTURE0);
+    //set view parameters
+//    //fixed eye:
+//    viewEye.x = 0.0;
+//    viewEye.y = 0.0;
+//    viewEye.z = 0.0;
+//    static float viewRotateAngle = 0.33 * E_PI;
+//    float viewRotateRad = 5.0;
+//    viewTgt.x = viewRotateRad*cosf(viewRotateAngle);
+////    viewTgt.y = -viewRotateRad*sinf(viewRotateAngle);
+//    viewTgt.y = 0.0f;
+//    viewTgt.z = -viewRotateRad*sinf(viewRotateAngle);
+//    viewRotateAngle += 0.01;
+
+//    fixed target:
+    viewTgt.x = 0.0;
+    viewTgt.y = 0.0;
+    viewTgt.z = 0.0;
+    static float viewRotateAngle = 0.33 * E_PI;
+    float viewRotateRad = 4.0;
+    viewEye.x = viewRotateRad*cosf(viewRotateAngle);
+    viewEye.y     = 3.0f;
+//    viewEye.y = -viewRotateRad*sinf(viewRotateAngle);
+    viewEye.z = -viewRotateRad*sinf(viewRotateAngle);
+    viewRotateAngle += 0.01;
+    [self updateView];
+
+/////use ubo to update view mat
+    glBindBuffer(GL_UNIFORM_BUFFER, uboMatrices);
+    glBufferSubData(GL_UNIFORM_BUFFER, sizeof(ksMatrix4), sizeof(ksMatrix4), (GLvoid*)&_lookViewMatrix.m[0][0]);
+    glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+    [self updateEyePosAt:_eyePosSlot];
+    //updateLight
+    glUniformMatrix4fv(glGetUniformLocation(_originProgram, "lightSpaceMatrix"), 1, GL_FALSE, (GLfloat*)&lightSpaceMatrix.m[0][0]);
+//    shader.setMat4("lightSpaceMatrix", lightSpaceMatrix);
+    glActiveTexture(GL_TEXTURE3);
     glBindTexture(GL_TEXTURE_2D, depthMap);
-    renderQuad();
+    glUniform1i(glGetUniformLocation(_originProgram, "shadowMap"), 3);
+    material = floor;
+    [self updateMaterialAtDiffSlot:_diffuseMapSlot atSpecSlot:_specularMapSlot atShineSlot:_shininessSlot];
+    [self drawSceneToOriginShader];
+    
+//    // render Depth map to quad for visual debugging
+//    // ---------------------------------------------
+////    debugDepthQuad.use();
+//    glUseProgram(_debugProgram);
+////    debugDepthQuad.setFloat("near_plane", near_plane);
+//    glUniform1f(glGetUniformLocation(_debugProgram, "near_plane"), near_plane);
+////    debugDepthQuad.setFloat("far_plane", far_plane);
+//    glUniform1f(glGetUniformLocation(_debugProgram, "far_plane"), far_plane);
+//    glActiveTexture(GL_TEXTURE0);
+//    glBindTexture(GL_TEXTURE_2D, depthMap);
+//    renderQuad();
     
     /////////////////////////////////////////////////////////
     
