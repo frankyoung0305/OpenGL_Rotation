@@ -7,6 +7,7 @@
 //
 #import <OpenGLES/ES3/gl.h>  //glXXX etc.
 #import <OpenGLES/ES3/glext.h>  //extensions
+#define GLES_VERSION 3
 
 #import <UIKit/UIKit.h>
 #import "myView.h"
@@ -19,6 +20,107 @@ typedef struct {
     float Color[4];
     float TexCoord[2]; // New
 } Vertex;
+
+
+
+
+///////pkm header
+struct __attribute__((__packed__)) PKMHeader {
+    struct u16be {
+        uint8_t msb, lsb;
+        inline uint16_t value() const{
+            return msb << 8 | lsb;
+        }
+    };
+    
+    char    magicNumber[4];   //"PKM "
+    u16be   version;                //"10" or "20"
+    u16be   format;                 //0~8
+    u16be   paddedWidth;
+    u16be   paddedHeight;
+    u16be   width;
+    u16be   height;
+};
+
+////////pkm header funcs
+unsigned short getWidth(const PKMHeader &p)
+{
+    return p.width.value();
+}
+
+unsigned short getHeight(const PKMHeader &p)
+{
+    return p.height.value();
+}
+
+unsigned short getPaddedWidth(const PKMHeader &p)
+{
+    return p.paddedWidth.value();
+}
+
+unsigned short getPaddedHeight(const PKMHeader &p)
+{
+    return p.paddedHeight.value();
+}
+
+GLenum getInternalFormat(const PKMHeader &p)
+{
+    unsigned short format = p.format.value();
+    switch (format) {
+//        case 0:
+//            return GL_ETC1_RGB8_OES;
+//            break;
+        case 1:
+            return GL_COMPRESSED_RGB8_ETC2;
+            break;
+        case 3:
+            return GL_COMPRESSED_RGBA8_ETC2_EAC;
+            break;
+        case 4:
+            return GL_COMPRESSED_RGB8_PUNCHTHROUGH_ALPHA1_ETC2;
+            break;
+        case 5:
+            return GL_COMPRESSED_R11_EAC;
+            break;
+        case 6:
+            return GL_COMPRESSED_RG11_EAC;
+            break;
+        case 7:
+            return GL_COMPRESSED_SIGNED_R11_EAC;
+            break;
+        case 8:
+            return GL_COMPRESSED_SIGNED_RG11_EAC;
+            break;
+        default:
+            NSLog(@"Unsupported format! %d", format);
+            exit(1);
+            break;
+    }
+}
+
+#if GLES_VERSION == 2
+GLsizei getSize(const PKMHeader &p)
+{
+    return (getPaddedWidth(p) * getPaddedHeight(p));
+}
+#elif GLES_VERSION == 3
+GLsizei getSize(const PKMHeader &p)
+{
+    GLenum internalFormat = getInternalFormat(p);
+    if (internalFormat != GL_COMPRESSED_RG11_EAC       && internalFormat != GL_COMPRESSED_SIGNED_RG11_EAC &&
+        internalFormat != GL_COMPRESSED_RGBA8_ETC2_EAC && internalFormat != GL_COMPRESSED_SRGB8_ALPHA8_ETC2_EAC)
+    {
+        return (getPaddedWidth(p) * getPaddedHeight(p)) >> 1;
+    }
+    else
+    {
+        return (getPaddedWidth(p) * getPaddedHeight(p));
+    }
+}
+#endif
+//////////////////////////////
+
+
 
 const Vertex Vertices[] = {
     // Front
@@ -153,40 +255,71 @@ const GLubyte Indices[] = {
     scaleZ = 1.0;
 }
 - (GLuint)setupTexture:(NSString *)fileName {
-    // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
-    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
-    if (!spriteImage) {
-        NSLog(@"Failed to load image %@", fileName);
+//    // 1) Get Core Graphics image reference. As you can see this is the simplest step. We just use the UIImage imageNamed initializer I’m sure you’ve seen many times, and then access its CGImage property.
+//    CGImageRef spriteImage = [UIImage imageNamed:fileName].CGImage;
+//    if (!spriteImage) {
+//        NSLog(@"Failed to load image %@", fileName);
+//        exit(1);
+//    }
+//
+//    // 2) Create Core Graphics bitmap context. To create a bitmap context, you have to allocate space for it yourself. Here we use some function calls to get the width and height of the image, and then allocate width*height*4 bytes.
+//    //    “Why times 4?” you may wonder. When we call the method to draw the image data, it will write one byte each for red, green, blue, and alpha – so 4 bytes in total.
+//    //    “Why 1 byte per each?” you may wonder. Well, we tell Core Graphics to do this when we set up the context. The fourth parameter to CGBitmapContextCreate is the bits per component, and we set this to 8 bits (1 byte).
+//    size_t width = CGImageGetWidth(spriteImage);
+//    size_t height = CGImageGetHeight(spriteImage);
+//
+//    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
+//
+//    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4,
+//                                                       CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
+//
+//    // 3) Draw the image into the context. This is also a pretty simiple step – we just tell Core Graphics to draw the image at the specified rectangle. Since we’re done with the context at this point, we can release it.
+//    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
+//
+//    CGContextRelease(spriteContext);
+//
+//    // 4) Send the pixel data to OpenGL. We first need to call glGenTextures to create a texture object and give us its unique ID (called “name”).
+//    GLuint texName;
+//    glGenTextures(1, &texName);
+//    glBindTexture(GL_TEXTURE_2D, texName);
+//
+//    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+//
+//    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+//
+//    free(spriteData);
+//    return texName;
+    ///////////////////////////////////load compressed texture///////////
+    
+    NSData *data = [NSData dataWithContentsOfFile:fileName];
+    NSUInteger len = [data length];
+    NSLog(@"file len %u", len);
+    Byte *byteData = (Byte*)malloc(len);
+    if(byteData == nullptr){
+        NSLog(@"can't alloc memery for compressed image!");
         exit(1);
     }
+    memcpy(byteData, [data bytes], len);
     
-    // 2) Create Core Graphics bitmap context. To create a bitmap context, you have to allocate space for it yourself. Here we use some function calls to get the width and height of the image, and then allocate width*height*4 bytes.
-    //    “Why times 4?” you may wonder. When we call the method to draw the image data, it will write one byte each for red, green, blue, and alpha – so 4 bytes in total.
-    //    “Why 1 byte per each?” you may wonder. Well, we tell Core Graphics to do this when we set up the context. The fourth parameter to CGBitmapContextCreate is the bits per component, and we set this to 8 bits (1 byte).
-    size_t width = CGImageGetWidth(spriteImage);
-    size_t height = CGImageGetHeight(spriteImage);
+    const PKMHeader &p = *reinterpret_cast<const PKMHeader *>(byteData);
     
-    GLubyte * spriteData = (GLubyte *) calloc(width*height*4, sizeof(GLubyte));
-    
-    CGContextRef spriteContext = CGBitmapContextCreate(spriteData, width, height, 8, width*4,
-                                                       CGImageGetColorSpace(spriteImage), kCGImageAlphaPremultipliedLast);
-    
-    // 3) Draw the image into the context. This is also a pretty simiple step – we just tell Core Graphics to draw the image at the specified rectangle. Since we’re done with the context at this point, we can release it.
-    CGContextDrawImage(spriteContext, CGRectMake(0, 0, width, height), spriteImage);
-    
-    CGContextRelease(spriteContext);
-    
-    // 4) Send the pixel data to OpenGL. We first need to call glGenTextures to create a texture object and give us its unique ID (called “name”).
+    NSLog(@"width %d, height %d, size %d, internal format %x", getWidth(p), getHeight(p), getSize(p), getInternalFormat(p));
+
+
     GLuint texName;
     glGenTextures(1, &texName);
     glBindTexture(GL_TEXTURE_2D, texName);
     
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, (int)width, (int)height, 0, GL_RGBA, GL_UNSIGNED_BYTE, spriteData);
+    glCompressedTexImage2D(GL_TEXTURE_2D, 0, getInternalFormat(p), getWidth(p), getHeight(p), 0, getSize(p), (GLubyte*)byteData);
+    NSLog(@"test %x", glGetError());
     
-    free(spriteData);
+    free(byteData);
     return texName;
+
+    
+
 }
 
 - (void)setup {
@@ -206,8 +339,9 @@ const GLubyte Indices[] = {
 
     [self setupProjection];
     [self setupTransform];
-    
-    _myTexture = [self setupTexture:@"pic.png"];
+    NSLog(@"test %x", glGetError());
+
+    _myTexture = [self setupTexture:@"/Users/yangfan/Code/Git/OpenGL_Rotation/Rotation/test.pkm"];
     
 }
 
